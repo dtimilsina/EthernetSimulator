@@ -16,16 +16,41 @@ public class Node {
 
     public void start() {
     	transitionTo(State.PREPARING_NEXT_PACKET);
-    	// enqueue the packet ready event
     }
 
     public void react(Event e) {
     	assert e.dest == this;
+
+    	if (isInterrupt(e)) {
+    		transmitJammingSignal();
+    	}
+    }
+
+    public boolean isInterrupt(Event e) {
+    	assert e.source != this;
+    	return e.doesSendBits() && isTransmitting() && !transmittingPreamble();
+    }
+
+    public boolean transmittingPreamble() {
+    	return this.state == State.TRANSMITTING_PACKET_PREAMBLE:
+    }
+
+    public boolean isTransmitting() {
+    	return this.state.isTransmittingState();
+    }
+
+    public void transmitJammingSignal() {
+    	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
+
+    	
+
+    	assert false;
     }
 
     public void transitionTo(State newState) {
     	assert this.state != newState;
 
     	this.state = newState;
+
     }
 }

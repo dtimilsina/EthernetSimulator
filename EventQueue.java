@@ -6,13 +6,12 @@ import java.util.*;
 
 public class EventQueue {
 
-	private PriorityQueue<Event> pq;
+	private PriorityQueue<Event> pq = new PriorityQueue<Event>();
 
-	public EventQueue() {
-		pq = new PriorityQueue<Event>();
-	}
+	public double currentTime = 0.0;
 
 	public void add(Event e) {
+		assert e.time >= currentTime;
 		pq.add(e);
 	}
 
