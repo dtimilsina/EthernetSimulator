@@ -7,7 +7,7 @@ public class Main {
 		EventQueue eq = new EventQueue(nodes);
 		int[] positions = {1, 3, 5, 7};
 		for (int i = 0; i < positions.length; i++) {
-			Node node = new Node(i, positions[i], eq);
+			Node node = new Node(i, positions[i]);
 			nodes.add(node);
 			assert node.state == State.PREPARING_NEXT_PACKET;
 		}

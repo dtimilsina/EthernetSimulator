@@ -4,26 +4,24 @@ public class Node {
 	public State state;
 	public int x; // For relative positioning within the network
 
-	// I think it'll be nice to be able to have each machine
-	// add to the eventqueue directly when it reacts to some event
-	public EventQueue eventQueue;
-
-    public Node(int id, int x, EventQueue eq) {
+    public Node(int id, int x) {
 		this.id = id;
 		this.x = x;
-		this.eventQueue = eq;		
     }
 
     public void start() {
     	transitionTo(State.PREPARING_NEXT_PACKET);
     }
 
-    public void react(Event e) {
+    public Event react(Event e) {
     	assert e.dest == this;
 
     	if (isInterrupt(e)) {
     		transmitJammingSignal();
     	}
+
+    	assert false;
+    	return null;
     }
 
     public boolean isInterrupt(Event e) {
@@ -39,12 +37,13 @@ public class Node {
     	return this.state.isTransmittingState();
     }
 
-    public void transmitJammingSignal() {
+    public Event transmitJammingSignal() {
     	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
 
 
     	assert false;
+    	return null;
     }
 
     public void transitionTo(State newState) {

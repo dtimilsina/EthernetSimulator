@@ -21,7 +21,7 @@ public class EventQueue {
 		assert e.dest == null;
 
 		for (Node node : nodes) {
-			
+
 		}
 		pq.add(e);
 	}
@@ -35,14 +35,15 @@ public class EventQueue {
 
 	/** For testing **/
 	public static void main(String[] args) {
-		Node n1 = new Node(1, 2, eq), n2 = new Node(3,4, eq);
+		Node n1 = new Node(1, 2);
 		Collection<Node> nodes = new ArrayList<Node>();
-		nodes.add(n1); nodes.add(n2);
+		nodes.add(n1);
+		
 		EventQueue eq = new EventQueue(nodes);
 
-		Event e1 = new Event(1, n1, n2);
-		Event e2 = new Event(2, n1, n2);
-		Event e3 = new Event(0, n1, n2);
+		Event e1 = Event.PacketReadyEvent(1, n1);
+		Event e2 = Event.PacketReadyEvent(2, n1);
+		Event e3 = Event.PacketReadyEvent(0, n1);
 
 		eq.add(e1); 
 		eq.add(e2); 
