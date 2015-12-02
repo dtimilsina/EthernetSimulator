@@ -20,6 +20,11 @@ public class Event implements Comparable<Event> {
         this.dest = dest;
     }
 
+    /* This is the type of event that a Node actually creates */
+    public Event(double time, Node source) {
+
+    }
+
     public int compareTo(Event other) {
         return this.time >= other.time ? 1 : 0;
     }
@@ -69,34 +74,58 @@ class PacketReady extends Event {
     public PacketReady(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public PacketReady(double time, Node source) {
+        super(time, source);
+    }    
 }
 
 class PreambleStart extends Event {
     public PreambleStart(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public PreambleStart(double time, Node source, Node dest) {
+        super(time, source);
+    }    
 }
 
 class PreambleEnd extends Event {
     public PreambleEnd(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public PreambleEnd(double time, Node source) {
+        super(time, source);
+    }    
 }
 
 class PacketStart extends Event {
     public PacketStart(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public PacketStart(double time, Node source) {
+        super(time, source);
+    }    
 }
 
 class JammingStart extends Event {
     public JammingStart(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public JammingStart(double time, Node source) {
+        super(time, source);
+    }    
 }
 
 class JammingEnd extends Event {
     public JammingEnd(double time, Node source, Node dest) {
         super(time, source, dest);
     }
+
+    public JammingEnd(double time, Node source) {
+        super(time, source);
+    }    
 }

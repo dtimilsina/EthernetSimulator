@@ -7,11 +7,22 @@ import java.util.*;
 public class EventQueue {
 
 	private PriorityQueue<Event> pq = new PriorityQueue<Event>();
+	private Collection<Node> nodes = new ArrayList<Node>();
 
 	public double currentTime = 0.0;
 
+	public EventQueue(Collection<Node> nodes) {
+		this.nodes = nodes;
+	}
+
 	public void add(Event e) {
 		assert e.time >= currentTime;
+		// temporary until a cleaner way is found
+		assert e.dest == null;
+
+		for (Node node : nodes) {
+			
+		}
 		pq.add(e);
 	}
 
@@ -24,9 +35,11 @@ public class EventQueue {
 
 	/** For testing **/
 	public static void main(String[] args) {
-		EventQueue eq = new EventQueue();
-
 		Node n1 = new Node(1, 2, eq), n2 = new Node(3,4, eq);
+		Collection<Node> nodes = new ArrayList<Node>();
+		nodes.add(n1); nodes.add(n2);
+		EventQueue eq = new EventQueue(nodes);
+
 		Event e1 = new Event(1, n1, n2);
 		Event e2 = new Event(2, n1, n2);
 		Event e3 = new Event(0, n1, n2);

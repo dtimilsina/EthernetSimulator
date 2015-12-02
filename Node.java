@@ -32,7 +32,7 @@ public class Node {
     }
 
     public boolean transmittingPreamble() {
-    	return this.state == State.TRANSMITTING_PACKET_PREAMBLE:
+    	return this.state == State.TRANSMITTING_PACKET_PREAMBLE;
     }
 
     public boolean isTransmitting() {
@@ -42,7 +42,7 @@ public class Node {
     public void transmitJammingSignal() {
     	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
-    	
+
 
     	assert false;
     }
