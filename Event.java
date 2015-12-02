@@ -47,8 +47,16 @@ public class Event implements Comparable<Event> {
         return new Event(time, source, eventType);
     }
 
-    public static Event PacketReadyEvent(double time, Node source) {
+    public static Event PacketReady(double time, Node source) {
         return new Event(time, source, EventType.PACKET_READY);
+    }
+
+    public static Event PreambleStart(double time, Node source) {
+        return new Event(time, source, EventType.PREAMBLE_START);
+    }
+
+    public static Event PreambleEnd(double time, Node source) {
+        return new Event(time, source, EventType.PREAMBLE_END);
     }
 
     // factory for each 
@@ -69,6 +77,11 @@ public class Event implements Comparable<Event> {
                this instanceof PreambleEnd ||
                this instanceof PacketStart ||
                this instanceof JammingStart;
+    }
+
+    public boolean doesConcernOthers() {
+        System.out.println("NEED TO FINISH"); // todo: here here here
+        return eventType != EventType.PACKET_READY;
     }
 
     /** Testing **/

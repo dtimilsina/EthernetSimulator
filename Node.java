@@ -2,11 +2,9 @@ public class Node {
 
 	public int id;
 	public State state;
-	public int x; // For relative positioning within the network
 
-    public Node(int id, int x) {
+    public Node(int id) {
 		this.id = id;
-		this.x = x;
     }
 
     public void start() {
@@ -50,6 +48,5 @@ public class Node {
     	assert this.state != newState;
 
     	this.state = newState;
-
     }
 }
