@@ -1,35 +1,38 @@
-/**
- * Event Class
- */
+import java.util.Random;
 
-public class Event {
+public class Event implements Comparable<Event> {
+    double time; // Time this event reaches dest machine
+    Node source; // Machine which generated the event
+    Node dest;   // Machine to which #time applies
+    static Random rand = new Random(1);
 
-    double time;
-    
-    public Event(double time){
-	this.time = time;
+    /* Don't invoke this directly */
+    public Event(double time, Node source, Node dest) {
+        this.time = time;
+        this.source = source;
+        this.dest = dest;
     }
-    
+
+    public int compareTo(Event other) {
+        return this.time >= other.time ? 1 : 0;
+    }
 }
 
+class PacketReady extends Event {
+    public static double sampleTime() {
+        return rand.nextGaussian() + 2.0; // gaussian around 2.0
+    }
 
-/**
- * States for Ethernet Transmitter
- */
-public enum TransmittedEventType {
-    EAGER_TO_SEND,
-    PREPARING_NEXT_PACKET,
-    WAITING_FOR_BACK_OFF,
-    TRANSMITTING_PACKET_PREAMBLE,
-    TRANSMITTING_PACKET_CONTENTS,
-    TRANSMITTING_JAMMING_SIGNAL
+    public PacketReady(double time, Node source, Node dest) {
+        super(time, source, dest);
+    }
+}
+/*
+class PreambleStart extends Event {
+
 }
 
-/**
- * States for Ethernet Receiver
- */
-public enum ReceivingEventType{
-    RECEIVER_BUSY,
-    WAITING_INTER_PACKET_GAP,
-    RECEIVER_IDLE
+class PreambleEnd extends Event {
+
 }
+*/
