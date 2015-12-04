@@ -33,17 +33,13 @@ public class EventQueue {
 	}
 
 	/** For testing **/
-	public static void main(String[] args) {
+	public static void main(String[] args) {	
 		Node n1 = new Node(1);
-		Collection<Node> nodes = new ArrayList<Node>();
-		nodes.add(n1);
-		
-		EventQueue eq = new EventQueue();
-
 		Event e1 = Event.PacketReady(1, n1);
 		Event e2 = Event.PacketReady(2, n1);
 		Event e3 = Event.PacketReady(0, n1);
 
+		EventQueue eq = new EventQueue();
 		eq.add(e1); 
 		eq.add(e2); 
 		eq.add(e3);
