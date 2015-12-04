@@ -16,7 +16,7 @@ public class Network {
 		return topology.keySet();
 	}
 
-	public void nextEvent() {
+	public void simulate() {
 		while (!eventQueue.empty()) {
 			Event event = eventQueue.next();
 			Event reaction = event.dest.react(event);
@@ -53,10 +53,16 @@ public class Network {
 		return rel;
 	}
 
-	
+
 
 
 	public static void main(String[] args) {
+		Map<Node, Integer> topology = new HashMap<Node, Integer>();
+		topology.put(new Node(1), 1);
+		topology.put(new Node(2), 4);
 
+		Network net = new Network(topology);
+		
+		net.simulate();
 	}
 }

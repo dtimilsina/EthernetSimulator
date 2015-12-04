@@ -38,8 +38,6 @@ public class Node {
     public Event transmitJammingSignal() {
     	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
-
-
     	assert false;
     	return null;
     }
@@ -48,5 +46,9 @@ public class Node {
     	assert this.state != newState;
 
     	this.state = newState;
+    }
+
+    public String toString() {
+        return "[" + id + "]";
     }
 }
