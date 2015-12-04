@@ -51,12 +51,12 @@ public class Network {
 
 		assert false;
 		return rel;
-	}	
+	}
 
-
+	
 
 
 	public static void main(String[] args) {
-		
+
 	}
 }
