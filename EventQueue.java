@@ -35,9 +35,9 @@ public class EventQueue {
 	/** For testing **/
 	public static void main(String[] args) {	
 		Node n1 = new Node(1);
-		Event e1 = Event.PacketReady(1, n1);
-		Event e2 = Event.PacketReady(2, n1);
-		Event e3 = Event.PacketReady(0, n1);
+		Event e1 = Event.PacketReady(n1, 1);
+		Event e2 = Event.PacketReady(n1, 2);
+		Event e3 = Event.PacketReady(n1, 0);
 
 		EventQueue eq = new EventQueue();
 		eq.add(e1); 

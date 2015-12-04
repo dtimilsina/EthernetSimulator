@@ -12,11 +12,20 @@ public class Network {
 		currentTime = 0.0;
 	}
 
+	/* 
+	 * Move each machine into a PREPARING_PACKET state
+	 */
+	private void init() {
+		
+	}
+
 	private Collection<Node> getMachines() {
 		return topology.keySet();
 	}
 
 	public void simulate() {
+		init();
+
 		while (!eventQueue.empty()) {
 			Event event = eventQueue.next();
 			Event reaction = event.dest.react(event);
@@ -53,7 +62,15 @@ public class Network {
 		return rel;
 	}
 
+	public String toString() {
+		String s = String.format("Time: %f\n", currentTime);
 
+		for (Node m : getMachines()) {
+			s += m + "\n";
+		}
+
+		return s;
+	}
 
 
 	public static void main(String[] args) {
@@ -62,7 +79,8 @@ public class Network {
 		topology.put(new Node(2), 4);
 
 		Network net = new Network(topology);
-		
-		net.simulate();
+		System.out.println(net);
+		//net.simulate();
+
 	}
 }

@@ -23,6 +23,7 @@ public class Event implements Comparable<Event> {
     public static double INTERPACKET_GAP = 0.96; // todo: check
     public static double PREAMBLE_TIME = 64.0;
     public static double JAMMING_TIME = 32.0;
+    public static double PACKET_READY_TIME = 2.0;
 
 
     public EventType eventType;
@@ -37,26 +38,32 @@ public class Event implements Comparable<Event> {
     static Random rand = new Random(1);
 
 
-    private Event(double time, Node source, EventType type) {
-        this.time = time;
+    private Event(Node source, double time, EventType type) {
         this.source = source;
+        this.time = time;        
         this.eventType = type;
     }
 
     public Event copy() {
-        return new Event(time, source, eventType);
+        return new Event(source, time, eventType);
     }
 
-    public static Event PacketReady(double time, Node source) {
-        return new Event(time, source, EventType.PACKET_READY);
+
+    public static Event PacketReady(Node source, double time) {
+        return new Event(source, time, EventType.PACKET_READY);
     }
 
-    public static Event PreambleStart(double time, Node source) {
-        return new Event(time, source, EventType.PREAMBLE_START);
+    /* This will auto set some amount of time for the event */
+    public static Event PacketReady(Node source) {
+        return Event.PacketReady(source, Event.samplePacketReadyTime());
     }
 
-    public static Event PreambleEnd(double time, Node source) {
-        return new Event(time, source, EventType.PREAMBLE_END);
+    public static Event PreambleStart(Node source, double time) {
+        return new Event(source, time, EventType.PREAMBLE_START);
+    }
+
+    public static Event PreambleEnd(Node source, double time) {
+        return new Event(source, time, EventType.PREAMBLE_END);
     }
 
     // factory for each 
@@ -68,15 +75,19 @@ public class Event implements Comparable<Event> {
     // JAMMING_START,
     // JAMMING_END;    
 
+    public static double samplePacketReadyTime() {
+        return Event.PACKET_READY_TIME + rand.nextGaussian();
+    }
+
     public int compareTo(Event other) {
         return this.time >= other.time ? 1 : 0;
     }
 
     public boolean doesSendBits() {
-        return this instanceof PreambleStart ||
-               this instanceof PreambleEnd ||
-               this instanceof PacketStart ||
-               this instanceof JammingStart;
+        return this.eventType == EventType.PREAMBLE_START ||
+               this.eventType == EventType.PREAMBLE_END   ||
+               this.eventType == EventType.PACKET_START   ||
+               this.eventType == EventType.JAMMING_START;
     }
 
     public boolean doesConcernOthers() {
@@ -86,13 +97,13 @@ public class Event implements Comparable<Event> {
 
     /** Testing **/
     public static void main(String[] args) {
-        PacketReady p = new PacketReady(1, null, null);
+        Event p = Event.PacketReady(null, 1);
         assert p.doesSendBits();
 
-        PreambleStart ps = new PreambleStart(1, null, null);
+        Event ps = Event.PreambleStart(null, 1);
         assert !ps.doesSendBits();
 
-        PreambleEnd pe = new PreambleEnd(1, null, null);
+        Event pe = Event.PreambleEnd(null, 1);
         assert !pe.doesSendBits();
     }
 }

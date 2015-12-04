@@ -1,14 +1,16 @@
 public class Node {
 
 	public int id;
-	public State state;
+	public State state = State.PREPARING_NEXT_PACKET;
 
     public Node(int id) {
 		this.id = id;
     }
 
-    public void start() {
-    	transitionTo(State.PREPARING_NEXT_PACKET);
+    public Event start() {
+        transitionTo(State.PREPARING_NEXT_PACKET);
+
+        return Event.PacketReady(this);
     }
 
     public Event react(Event e) {
@@ -49,6 +51,6 @@ public class Node {
     }
 
     public String toString() {
-        return "[" + id + "]";
+        return String.format("[id:%d state:%s]", id, state.name());
     }
 }
