@@ -1,7 +1,12 @@
+import java.util.*;
+
 public class Node {
 
 	public int id;
-	public State state = State.PREPARING_NEXT_PACKET;
+	public State state;
+
+    public Collection<Event> openTransmissions;
+
 
     public Node(int id) {
 		this.id = id;
@@ -9,7 +14,7 @@ public class Node {
 
     public Event start() {
         transitionTo(State.PREPARING_NEXT_PACKET);
-
+        
         return Event.PacketReady(this);
     }
 
@@ -51,6 +56,6 @@ public class Node {
     }
 
     public String toString() {
-        return String.format("[id:%d state:%s]", id, state.name());
+        return String.format("id:%d state:%s", id, state.name());
     }
 }

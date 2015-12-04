@@ -44,13 +44,20 @@ public class Event implements Comparable<Event> {
         this.eventType = type;
     }
 
+    private Event(Node source, Node dest, double time, EventType type) {
+        this.source = source;
+        this.dest = dest;
+        this.time = time;        
+        this.eventType = type;
+    }
+
     public Event copy() {
         return new Event(source, time, eventType);
     }
 
 
     public static Event PacketReady(Node source, double time) {
-        return new Event(source, time, EventType.PACKET_READY);
+        return new Event(source, source, time, EventType.PACKET_READY);
     }
 
     /* This will auto set some amount of time for the event */
@@ -93,6 +100,12 @@ public class Event implements Comparable<Event> {
     public boolean doesConcernOthers() {
         System.out.println("NEED TO FINISH"); // todo: here here here
         return eventType != EventType.PACKET_READY;
+    }
+
+    public String toString() {
+        String destId = "x";
+        if (dest != null) { destId = "" + dest.id; }
+        return String.format("t%f m%s -> m%s %s", time, source.id, destId, eventType.name());
     }
 
     /** Testing **/

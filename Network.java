@@ -4,6 +4,8 @@ public class Network {
 
 	private Map<Node, Integer> topology;
 	private EventQueue eventQueue;
+	private Map<Node, Event> nextEvent = new HashMap<Node, Event>();
+
 	private double currentTime;
 
 	public Network(Map<Node, Integer> topology) {
@@ -12,25 +14,43 @@ public class Network {
 		currentTime = 0.0;
 	}
 
-	/* 
-	 * Move each machine into a PREPARING_PACKET state
-	 */
-	private void init() {
-		
-	}
-
 	private Collection<Node> getMachines() {
 		return topology.keySet();
 	}
 
-	public void simulate() {
-		init();
+	private void nextEventWithDest(Node node) {
 
-		while (!eventQueue.empty()) {
-			Event event = eventQueue.next();
-			Event reaction = event.dest.react(event);
-			generateRelativeEvents(reaction);
+	}
+
+	public void simulate() {
+		System.out.println(this);
+		init();
+		System.out.println("After");
+		System.out.println(this);
+		
+
+		// while (!eventQueue.empty()) {
+		// 	Event event = eventQueue.next();
+		// 	Event reaction = event.dest.react(event);
+		// 	generateRelativeEvents(reaction);
+		// }
+	}
+
+	/* 
+	 * Move each machine into a PREPARING_PACKET state
+	 */
+	private void init() {
+		for (Node machine : getMachines()) {
+			add(machine.start());
 		}
+	}
+
+	private void add(Event e) {
+		if (!nextEvent.containsKey(e.dest) || 
+			nextEvent.get(e.dest).time > e.time) {
+			nextEvent.put(e.dest, e);
+		}
+		eventQueue.add(e);
 	}
 
 	/* For an event spawned by machine n, there are really 
@@ -41,7 +61,7 @@ public class Network {
 	private void generateRelativeEvents(Event e) {
 		for (Node dest : getMachines()) {
 			if (dest != e.source) { // don't send to self...
-				eventQueue.add(adjustEvent(e, dest));
+				add(adjustEvent(e, dest));
 			}
 		}
 	}
@@ -66,7 +86,11 @@ public class Network {
 		String s = String.format("Time: %f\n", currentTime);
 
 		for (Node m : getMachines()) {
-			s += m + "\n";
+			String nes = "[no next event]";
+			if (nextEvent.containsKey(m)) {
+				nes = nextEvent.get(m).toString();
+			}
+			s += String.format("[pos%d %s] next:[%s]\n", topology.get(m), m, nes);
 		}
 
 		return s;
@@ -79,8 +103,8 @@ public class Network {
 		topology.put(new Node(2), 4);
 
 		Network net = new Network(topology);
-		System.out.println(net);
-		//net.simulate();
+		
+		net.simulate();
 
 	}
 }
