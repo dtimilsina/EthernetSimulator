@@ -32,7 +32,10 @@ public class Network {
 		while (!eventQueue.empty()) {
 			Event event = eventQueue.next();
 			Event reaction = event.dest.react(event);
-			generateRelativeEvents(reaction);
+
+			if (reaction != null) {
+				generateRelativeEvents(reaction);
+			}
 		}
 	}
 
@@ -57,12 +60,13 @@ public class Network {
 	 * a bunch of relative events corresponding to when that 
 	 * event reaches all the other nodes, since they're not 
 	 * equidistant
+	 * CURRENTLY also sending back to the source since it can
+	 * use its own events to clock the events' ends
+	 * (eg, see its own preamble start, and so schedule the end)
 	 */
 	private void generateRelativeEvents(Event e) {
 		for (Node dest : getMachines()) {
-			if (dest != e.source) { // don't send to self...
-				add(adjustEvent(e, dest));
-			}
+			add(adjustEvent(e, dest));
 		}
 	}
 
@@ -70,6 +74,7 @@ public class Network {
 	 * Adjust event to be in terms of dest node 
 	 */
 	private Event adjustEvent(Event e, Node dest) {
+		// need to add to the time provided by e
 		assert e.dest == null;
 		assert dest != e.source;
 

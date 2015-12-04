@@ -73,6 +73,14 @@ public class Event implements Comparable<Event> {
         return new Event(source, time, EventType.PREAMBLE_END);
     }
 
+    public static Event JammingStart(Node source, double time) {
+        return new Event(source, time, EventType.JAMMING_START);
+    }
+
+    public static Event JammingEnd(Node source, double time) {
+        return new Event(source, time, EventType.JAMMING_END);
+    }    
+
     // factory for each 
     //     PACKET_READY,
     // PREAMBLE_START,
