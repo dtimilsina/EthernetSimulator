@@ -29,11 +29,11 @@ public class Network {
 		System.out.println(this);
 		
 
-		// while (!eventQueue.empty()) {
-		// 	Event event = eventQueue.next();
-		// 	Event reaction = event.dest.react(event);
-		// 	generateRelativeEvents(reaction);
-		// }
+		while (!eventQueue.empty()) {
+			Event event = eventQueue.next();
+			Event reaction = event.dest.react(event);
+			generateRelativeEvents(reaction);
+		}
 	}
 
 	/* 

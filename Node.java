@@ -3,7 +3,7 @@ import java.util.*;
 public class Node {
 
 	public int id;
-	public State state;
+	public State state = State.UNINITIALIZED;
 
     public Collection<Event> openTransmissions;
 
@@ -21,7 +21,12 @@ public class Node {
     public Event react(Event e) {
     	assert e.dest == this;
 
-    	if (isInterrupt(e)) {
+        if (e.eventType == EventType.PACKET_READY) {
+            System.out.println("READY");
+            System.exit(0);
+        }
+
+    	else if (isInterrupt(e)) {
     		transmitJammingSignal();
     	}
 
