@@ -1,4 +1,4 @@
-import java.util.Random;
+import java.util.*;
 
 /*
 -PreambleStart
@@ -24,6 +24,7 @@ public class Event implements Comparable<Event> {
     public static double PREAMBLE_TIME = 64.0;
     public static double JAMMING_TIME = 32.0;
     public static double PACKET_READY_TIME = 2.0;
+    public static double PROPAGATION_SPEED = 4.0; // distance units / time unit
 
 
     public EventType eventType;
@@ -32,11 +33,19 @@ public class Event implements Comparable<Event> {
     
     public Node source; // Machine which generated the event
     public Node dest;   // Machine to which #time applies
-    
+
+    public int id;
+
     public boolean active = true; // Whether the event is still valid
     
     static Random rand = new Random(1);
 
+    /*
+    rework this to have a separate duration and tim setting so that
+    we arent reassigning the time variable but rather setting the time
+    based on the duration provided by the event itself, and set the time
+    in the network class when it actually runs
+    */
 
     private Event(Node source, double time, EventType type) {
         this.source = source;
@@ -52,9 +61,8 @@ public class Event implements Comparable<Event> {
     }
 
     public Event copy() {
-        return new Event(source, time, eventType);
+        return new Event(source, dest, time, eventType);
     }
-
 
     public static Event PacketReady(Node source, double time) {
         return new Event(source, source, time, EventType.PACKET_READY);
@@ -88,21 +96,27 @@ public class Event implements Comparable<Event> {
     // PACKET_START,
     // PACKET_END,
     // JAMMING_START,
-    // JAMMING_END;    
+    // JAMMING_END;   
+
 
     public static double samplePacketReadyTime() {
         return Event.PACKET_READY_TIME + rand.nextGaussian();
     }
 
     public int compareTo(Event other) {
-        return this.time >= other.time ? 1 : 0;
+        return new Double(this.time).compareTo(new Double(other.time));//this.time >= other.time ? 0 : 1;
     }
 
-    public boolean doesSendBits() {
+    public boolean startsTransmission() {
         return this.eventType == EventType.PREAMBLE_START ||
-               this.eventType == EventType.PREAMBLE_END   ||
                this.eventType == EventType.PACKET_START   ||
                this.eventType == EventType.JAMMING_START;
+    }
+
+    public boolean endsTransmission() {
+        return this.eventType == EventType.PREAMBLE_END ||
+               this.eventType == EventType.PACKET_END   ||
+               this.eventType == EventType.JAMMING_END;
     }
 
     public boolean doesConcernOthers() {
@@ -116,16 +130,32 @@ public class Event implements Comparable<Event> {
         return String.format("t%f m%s -> m%s %s", time, source.id, destId, eventType.name());
     }
 
+    public String toKey() {
+        return source.id + ":" + dest.id + ":" + time + ":" +eventType;
+    }
+
+    public int hashCode() {
+        return toKey().hashCode();
+    }
+
+    public boolean equals(Object obj) {
+       if (!(obj instanceof Event))
+            return false;
+        if (obj == this)
+            return true;
+        return this.toKey() == ((Event) obj).toKey();
+    }
+
     /** Testing **/
     public static void main(String[] args) {
         Event p = Event.PacketReady(null, 1);
-        assert p.doesSendBits();
+        assert p.startsTransmission();
 
         Event ps = Event.PreambleStart(null, 1);
-        assert !ps.doesSendBits();
+        assert !ps.startsTransmission();
 
         Event pe = Event.PreambleEnd(null, 1);
-        assert !pe.doesSendBits();
+        assert !pe.startsTransmission();
     }
 }
 

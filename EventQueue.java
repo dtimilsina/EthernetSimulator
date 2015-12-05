@@ -28,9 +28,18 @@ public class EventQueue {
 		return pq.peek();
 	}
 
-	public boolean empty() {
-		return pq.peek() == null;
+	public int size() {
+		return pq.size();
 	}
+
+	public boolean empty() {
+		return size() == 0;
+	}
+
+	public String toString() {
+		return pq.toString();
+	}
+	
 
 	/** For testing **/
 	public static void main(String[] args) {	

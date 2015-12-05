@@ -24,9 +24,6 @@ public class Node {
     public Event react(Event e) {
     	assert e.dest == this;
 
-        /* For doing things like clocking PREAMBLE_START->END
-         * as well as the usual, like PACKET_READY
-         */
         if (e.source == this) {
             return handleOwnEvent(e);
         } 
@@ -35,22 +32,49 @@ public class Node {
     		return handleInterrupt();
     	}
 
+        // I'm receiving bits, but I'm not currently sending anything
+        else if (e.startsTransmission()) {
+            openTransmissionFor(e);
+        }
+
+        else if (e.endsTransmission()) {
+            closeTransmissionFor(e);
+        }
+
         /* if opens new transmission, need to add it to openTransmissions */
 
         /* else if ends transmission and im eager to send */
-
-    	assert false;
-    	return null;
+        else {
+            System.out.format("#react cannot handle: %s\n", e);
+        	assert false;
+        	return null;
+        }
     }
 
+    private void openTransmissionFor(Event e) {
+        openTransmissions.add(e);
+    }
+
+    private void closeTransmissionFor(Event e) {
+        
+    }
+
+    /* For doing things like clocking PREAMBLE_START->END
+    * as well as the usual, like PACKET_READY
+    */
     private Event handleOwnEvent(Event e) {
         assert e.source == this;
 
         if (e.eventType == EventType.PACKET_READY) {
             return handlePacketReady();
-        } else if (e.eventType == EventType.PREAMBLE_START) {
-            return Event.PreambleEnd(this, 0.0);
-        } else {
+        } 
+
+        else if (e.eventType == EventType.PREAMBLE_START) {
+            return Event.PreambleEnd(this, Event.PREAMBLE_TIME);
+        } 
+
+        else {
+            System.out.format("Received unprocessable event: %s\n", e);
             assert false;
             return null;
         }
@@ -69,8 +93,8 @@ public class Node {
     }
 
     private boolean isInterrupt(Event e) {
-    	assert e.source != this;
-    	return e.doesSendBits() && isTransmitting() && !transmittingPreamble();
+    	assert e.source != this;        
+    	return e.startsTransmission() && isTransmitting() && !transmittingPreamble();
     }
 
     public boolean transmittingPreamble() {
@@ -82,6 +106,8 @@ public class Node {
     }
 
     public Event handleInterrupt() {
+        System.out.format("%d INTERRUPTED\n", id);
+
     	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
     	return Event.JammingStart(this, 0.0);

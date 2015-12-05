@@ -18,20 +18,26 @@ public class Network {
 		return topology.keySet();
 	}
 
-	private void nextEventWithDest(Node node) {
+	private void nextEventByDest(Node node) {
 
 	}
 
 	public void simulate() {
 		System.out.println(this);
 		init();
-		System.out.println("After");
-		System.out.println(this);
-		
 
 		while (!eventQueue.empty()) {
+			System.out.println();
+			System.out.format("QUEUE: %s\n", eventQueue);
+
 			Event event = eventQueue.next();
+			currentTime = event.time;
+			System.out.println("curentime now" + currentTime);			
+			
+			System.out.format("Event: %s\n", event);
+
 			Event reaction = event.dest.react(event);
+			System.out.format("->Reaction: %s\n", reaction);
 
 			if (reaction != null) {
 				generateRelativeEvents(reaction);
@@ -49,10 +55,15 @@ public class Network {
 	}
 
 	private void add(Event e) {
+		assert e.time >= currentTime;
+
 		if (!nextEvent.containsKey(e.dest) || 
 			nextEvent.get(e.dest).time > e.time) {
 			nextEvent.put(e.dest, e);
 		}
+
+		System.out.format("Enqueuing %s\n", e);
+
 		eventQueue.add(e);
 	}
 
@@ -76,15 +87,25 @@ public class Network {
 	private Event adjustEvent(Event e, Node dest) {
 		// need to add to the time provided by e
 		assert e.dest == null;
-		assert dest != e.source;
 
 		Event rel = e.copy(); // relative event
 		rel.dest = dest;
-		int dist = 0;//rel.source.distanceTo(rel.dest);
-		double propTime = 100000 * dist; // todo: fix me !!!
 
-		assert false;
+		double propTime = timeToReachDest(rel);
+		rel.time += currentTime + propTime;
+
 		return rel;
+	}
+
+	private double timeToReachDest(Event e) {
+		if (e.source == e.dest) {
+			return 0.0; // careful to avoid any precision errors
+		}
+
+        double sourcePos = (double) topology.get(e.source);        
+        double destPos   = (double) topology.get(e.dest);
+
+        return Math.abs(sourcePos - destPos) / Event.PROPAGATION_SPEED;
 	}
 
 	public String toString() {
