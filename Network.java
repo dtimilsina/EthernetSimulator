@@ -29,22 +29,22 @@ public class Network {
 
 			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
-				if (action.actionType == Action.SEND_PREAMBLE) {
+				if (action.actionType == ActionType.SEND_PREAMBLE) {
 					sendPreamble(action);
-				} else if (action.actionType == Action.SEND_PACKET) {
-					sendPacket(action);
-				} else if (action.actionType == Action.SEND_JAMMING) {
-					sendJamming(action);
-				} else if (action.actionType == Action.BACKOFF) {
-					backoff(action);
+				} else if (action.actionType == ActionType.SEND_PACKET) {
+					//sendPacket(action);
+				} else if (action.actionType == ActionType.SEND_JAMMING) {
+					//sendJamming(action);
+				} else if (action.actionType == ActionType.BACKOFF) {
+					//backoff(action);
+				} else {
+					System.out.println("We something");
+					assert false;
 				}
 			}
 		}
 	}
 
-	/* 
-	 * Move each machine into a PREPARING_PACKET state
-	 */
 	private void init() {
 		for (Node machine : getMachines()) {
 			add(machine.start());
@@ -65,29 +65,6 @@ public class Network {
 		}
 	}
 
-	public void xxxxx_simulate() {
-		System.out.println(this);
-		init();
-
-		while (!eventQueue.empty()) {
-			System.out.println();
-			System.out.format("QUEUE: %s\n", eventQueue);
-
-			Event event = eventQueue.next();
-			currentTime = event.time;
-			System.out.println("curentime now" + currentTime);			
-			
-			System.out.format("Event: %s\n", event);
-
-			Event reaction = event.dest.react(event);
-			System.out.format("->Reaction: %s\n", reaction);
-
-			if (reaction != null) {
-				generateRelativeEvents(reaction);
-			}
-		}
-	}
-
 	private void add(Event e) {
 		assert e.time >= currentTime;
 
@@ -99,44 +76,6 @@ public class Network {
 		System.out.format("Enqueuing %s\n", e);
 
 		eventQueue.add(e);
-	}
-
-	/* For an event spawned by machine n, there are really 
-	 * a bunch of relative events corresponding to when that 
-	 * event reaches all the other nodes, since they're not 
-	 * equidistant
-	 * CURRENTLY also sending back to the source since it can
-	 * use its own events to clock the events' ends
-	 * (eg, see its own preamble start, and so schedule the end)
-	 */
-	private void generateRelativeEvents(Event e) {
-		for (Node dest : getMachines()) {
-			add(adjustEvent(e, dest));
-		}
-	}
-
-	/* 
-	 * Adjust event to be in terms of dest node 
-	 */
-	private Event adjustEvent(Event e, Node dest) {
-		// need to add to the time provided by e
-		assert e.dest == null;
-
-		Event rel = e.copy(); // relative event
-		rel.dest = dest;
-
-		double propTime = timeToReachDest(rel);
-		rel.time += currentTime + propTime;
-
-		return rel;
-	}
-
-	private double timeToReachDest(Event e) {
-		if (e.source == e.dest) {
-			return 0.0; // careful to avoid any precision errors
-		}
-
-		return timeToReach(e.source, e.dest);
 	}
 
 	private double timeToReach(Node source, Node dest) {
