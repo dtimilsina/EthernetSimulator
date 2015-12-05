@@ -4,13 +4,11 @@ public class Node {
 
 	public int id;
 	public State state = State.UNINITIALIZED;
-
-    public Collection<Event> openTransmissions;
+    public int openTransmissions = 0;
 
 
     public Node(int id) {
 		this.id = id;
-        openTransmissions = new HashSet<Event>();
     }
 
     public Event start() {
@@ -23,70 +21,7 @@ public class Node {
 
     public Action react(Event e) {
         assert e.dest == this;
-
-        /* if own(e) => nextActionInSequence(e) */
-        if (own(e)) {
-            return nextActionInSequence(e);
-        }
-
-        else {
-            return reactToExternalEvent(e);
-        }
-
-        /*
-        if (e.eventType == EventType.PACKET_READY) {
-            assert own(e);
-            return handlePacketReady();
-        }
-
-        else if (own(e) && e.eventType == EventType.PREAMBLE_END) {
-            transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
-            double duration = nextPacketSize() / Event.TRANSMISSION_RATE;
-            return new Action(ActionType.SEND_PACKET, duration, this);
-        }
-
-        else if (own(e) && e.eventType == EventType.PACKET_END) {
-            // successful transmission
-        }
-
-        else if (e.eventType == EventType.BACKOFF_END) {
-
-        }
-
-        else if (isInterrupt(e)) {
-            return handleInterrupt();
-        }
-
-        else if (e.eventType == EventType.PREAMBLE_START) {
-            // opent ransmission
-        }
-
-        else if (e.eventType == EventType.PREAMBLE_END) {
-            // close transmission
-        }
-
-        else if (e.eventType == EventType.PACKET_START) {
-            // open transmission
-        }
-
-        else if (e.eventType == EventType.PACKET_END) {
-            // close transmission
-        }
-
-        else if (e.eventType == EventType.JAMMING_START) {
-            // remove the PacketStart associated with this jammed
-        }
-
-        else if (e.eventType == EventType.JAMMING_END) {
-            // close transmission
-        }
-
-        else {
-            System.out.println("Received unhandleable event");
-            System.exit(1);
-            return null;
-        }
-        */
+        return own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
     }
 
     /*
@@ -102,29 +37,44 @@ public class Node {
 
     private Action reactToExternalEvent(Event e) {
         assert !own(e);
+        assert e.eventType != EventType.PACKET_READY;
 
         if (isInterrupt(e)) {
             return handleInterrupt();
         }
-            
-        else if (e.startsTransmission()) {
-            openTransmissionFor(e);
 
-            if (e.eventType == EventType.JAMMING_START) {
-                
-            }            
+        else if (e.eventType == EventType.PREAMBLE_START) {
+            openTransmission();
+        }
+
+        else if (e.eventType == EventType.PACKET_END) {
+            closeTransmission();
+        }
+
+        else if (e.eventType == EventType.JAMMING_START) {
+            closeTransmission(); // Close the actual packet expectation
+            openTransmission();  // Start jamming sequence transmission
         } 
 
-        else if (e.endsTransmission(e)) {
-            closeTransmissionFor(e);
-            // should try to send packet if we are eager AND it isnt just
-            // a preamble_end (because we're immediately gonna receive packet)
+        else if (e.eventType == EventType.JAMMING_END) {
+            closeTransmission(); // End jamming sequence
+        }
 
-        } 
+        if (state == State.EAGER_TO_SEND && isLineIdle()) {
+            return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this);
+        }
 
         System.out.println("What else is there...?");
         System.exit(1);
         return null;
+    }
+
+    private int openTransmission() {
+        return ++openTransmissions;
+    }
+
+    private int closeTransmission() {
+        return (openTransmissions = Math.max(openTransmissions-1, 0));
     }
 
     private boolean own(Event e) {
@@ -133,20 +83,14 @@ public class Node {
 
     private Action nextActionInSequence(Event e) {
         assert own(e);
+        // react to end of jamming => backoff
+        // 
         return null;
     }
 
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
         return 1; // todo: fix me
-    }
-
-    private void openTransmissionFor(Event e) {
-        openTransmissions.add(e);
-    }
-
-    private void closeTransmissionFor(Event e) {
-
     }
 
     private Action handlePacketReady() {
@@ -158,12 +102,12 @@ public class Node {
     }
 
     private boolean isLineIdle() {
-        return openTransmissions.size() == 0;
+        return openTransmissions == 0;
     }
 
     private boolean isInterrupt(Event e) {
-    	assert e.source != this;        
-    	return e.startsTransmission() && isTransmitting() && !transmittingPreamble();
+    	assert e.source != this;
+    	return e.doesTransmit() && isTransmitting() && !transmittingPreamble();
     }
 
     public boolean transmittingPreamble() {
@@ -175,23 +119,21 @@ public class Node {
     }
 
     public Action handleInterrupt() {
-        System.out.format("%d INTERRUPTED\n", id);
-
-        System.out.println("need to implement something to invalidate the existing events");
-        System.exit(1);
-
         transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
-
         return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this);
     }
 
     public void transitionTo(State newState) {
     	assert this.state != newState;
-
     	this.state = newState;
     }
 
     public String toString() {
         return String.format("id:%d state:%s", id, state.name());
+    }
+
+
+    public static void main(String[] args) {
+
     }
 }

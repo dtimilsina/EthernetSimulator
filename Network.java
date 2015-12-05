@@ -59,8 +59,8 @@ public class Network {
 			double startTime = currentTime;
 			startTime += timeToReach(action.source, dest);
 
-			Event start = Event.PreambleStart(action.source, startTime);
-			Event end = Event.PreambleEnd(action.source, startTime + action.duration);
+			Event start = new Event(EventType.PREAMBLE_START, action.source, dest, startTime);
+			Event end = new Event(EventType.PREAMBLE_END, action.source, dest, startTime + action.duration);
 
 			add(start);
 			add(end);
