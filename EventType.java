@@ -6,5 +6,12 @@ public enum EventType {
 	PACKET_END,
 	JAMMING_START,
 	JAMMING_END,
-	BACKOFF_END;
+	WAIT_END;
 }
+
+
+/*
+
+Action a preamble => preamble start, end, packet start, end
+
+*/

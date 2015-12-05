@@ -12,6 +12,7 @@ public class Network {
 
 	private double currentTime = 0.0;
 
+
 	public Network(Map<Node, Integer> topology) {
 		this.topology = topology;
 	}
@@ -24,6 +25,7 @@ public class Network {
 		init();
 
 		while (!eventQueue.empty()) {
+			System.out.format("Network: \n%s\n", this);
 			Event event = eventQueue.next();
 			currentTime = event.time;
 
@@ -31,17 +33,15 @@ public class Network {
 
 			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
-				if (action.actionType == ActionType.SEND_PREAMBLE) {
-					spawnPreambleEvents(action);
-				} /*else if (action.actionType == ActionType.SEND_PACKET) {
-					//sendPacket(action);
-				} else if (action.actionType == ActionType.SEND_JAMMING) {
-					//sendJamming(action);
-				} else if (action.actionType == ActionType.BACKOFF) {
-					//backoff(action);
-				}*/ else {
-					System.out.println("We something");
-					assert false;
+				switch (action.actionType) {
+					case PREPARE_PACKET: 
+						preparePacketEvent(action); 
+						break;
+					case WAIT:
+						waitEvent(action); 
+						break;
+					default:
+						spawnEvents(action);
 				}
 			}
 		}
@@ -49,22 +49,61 @@ public class Network {
 
 	private void init() {
 		for (Node machine : getMachines()) {
-			add(machine.start());
+			Action action = machine.start();
+			Event event = new Event(EventType.PACKET_READY,
+									machine,
+									machine,
+									currentTime + action.duration);
+			add(event);
 		}
-	}	
+	}
 
-	private void spawnPreambleEvents(Action action) {
+	private void preparePacketEvent(Action action) {
+		double time = currentTime + action.duration;
+		Event event = new Event(EventType.PACKET_READY, action.source, action.source, time);
+		add(event);
+	}
+
+	private void spawnEvents(Action action) {
 		for (Node dest : getMachines()) {
 
 			double startTime = currentTime;
 			startTime += timeToReach(action.source, dest);
 
-			Event start = new Event(EventType.PREAMBLE_START, action.source, dest, startTime);
-			Event end = new Event(EventType.PREAMBLE_END, action.source, dest, startTime + action.duration);
+			EventType startType = null;
+			EventType endType = null;
+
+			switch (action.actionType) {
+				case SEND_PREAMBLE:
+					startType = EventType.PREAMBLE_START;
+					endType = EventType.PREAMBLE_END;
+					break;
+				case SEND_PACKET:
+					startType = EventType.PACKET_START;
+					endType = EventType.PACKET_END;
+					break;
+				case SEND_JAMMING:
+					startType = EventType.JAMMING_START;
+					endType = EventType.JAMMING_END;
+					break;
+				default:
+					System.out.println("FUCK");
+					System.out.println(action.actionType.name());
+					System.exit(1);
+			}
+
+			Event start = new Event(startType, action.source, dest, startTime);
+			Event end = new Event(endType, action.source, dest, startTime + action.duration);
 
 			add(start);
 			add(end);
-		}
+		}		
+	}
+
+	private void waitEvent(Action action) {
+		double time = currentTime + action.duration;
+		Event event = new Event(EventType.WAIT_END, action.source, action.source, time);
+		add(event);
 	}
 
 	private void add(Event e) {
@@ -74,8 +113,6 @@ public class Network {
 			nextEvent.get(e.dest).time > e.time) {
 			nextEvent.put(e.dest, e);
 		}
-
-		System.out.format("Enqueuing %s\n", e);
 
 		eventQueue.add(e);
 	}

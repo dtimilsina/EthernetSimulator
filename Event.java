@@ -9,7 +9,6 @@ public class Event implements Comparable<Event> {
     public static double JAMMING_TIME = 32.0;
     public static double PACKET_READY_TIME = 2.0;
     public static double PROPAGATION_SPEED = 4.0; // distance units / time unit
-    public static double TRANSMISSION_RATE = 10.0;
 
 
     public EventType eventType;

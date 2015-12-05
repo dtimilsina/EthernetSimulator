@@ -2,21 +2,33 @@ import java.util.*;
 
 public class Node {
 
+    private final double TRANSMISSION_RATE = 10.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
     public int openTransmissions = 0;
+
+    private int currentPacketSize;
+
+    private int timesBackedOff = 0;
+
+    public Statistics stats = new Statistics();
 
 
     public Node(int id) {
 		this.id = id;
     }
 
-    public Event start() {
+    public Action start() {
         assert state == State.UNINITIALIZED;
+        return prepareNextPacket();
+    }
 
+    private Action prepareNextPacket() {
         transitionTo(State.PREPARING_NEXT_PACKET);
-        
-        return Event.PacketReady(this);
+        timesBackedOff = 0;
+        currentPacketSize = nextPacketSize();
+        double duration = Event.samplePacketReadyTime();
+        return new Action(ActionType.PREPARE_PACKET, duration, this);
     }
 
     public Action react(Event e) {
@@ -24,16 +36,70 @@ public class Node {
         return own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
     }
 
-    /*
-    in    PACKET_READY,
-    in    BACKOFF_END;
-    in/ex PREAMBLE_START,
-    in/ex PREAMBLE_END,
-    in/ex PACKET_START,
-    in/ex PACKET_END,
-    in/ex JAMMING_START,
-    in/ex JAMMING_END,
-    */
+    private boolean own(Event e) {
+        return e.source == this;
+    }
+
+    /* Externally-clocked internal events */
+    private Action nextActionInSequence(Event e) {
+        assert own(e);
+
+        switch (e.eventType) {
+            case PACKET_READY:   return sendIfIdle();
+            case PREAMBLE_START: return null;
+            case PREAMBLE_END:   return handlePreambleEnd();
+            case PACKET_START:   return null;
+            case PACKET_END:     return null;
+            case JAMMING_START:  return null;
+            case JAMMING_END:    return handleBackoff();
+            case WAIT_END:       return sendIfIdle();
+            default:             return null;
+        }
+    }
+
+    private Action handlePreambleEnd() {
+        if (isLineIdle()) {
+            transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
+            double transmissionTime = currentPacketSize / TRANSMISSION_RATE;
+            return new Action(ActionType.SEND_PACKET, transmissionTime, this);
+        } else {
+            return handleInterrupt();
+        }        
+    }
+
+    private Action handleBackoff() {
+        assert timesBackedOff <= 16;
+
+        if (timesBackedOff == 16) {
+            timesBackedOff = 0;
+            return prepareNextPacket();
+        }
+
+        else {
+            transitionTo(State.WAITING_FOR_BACKOFF);
+            double duration = nextBackoffSlots() * Event.SLOT_TIME;
+            timesBackedOff++;            
+            return new Action(ActionType.WAIT, duration, this);
+        }
+    }
+
+    private double nextBackoffSlots() {
+        if (timesBackedOff < 10) {
+            return Math.pow(2, timesBackedOff);
+        } else {
+            return 1024;
+        }
+    }
+
+    private Action sendIfIdle() {
+        if (isLineIdle()) {
+            transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+            return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
+        }
+
+        transitionTo(State.EAGER_TO_SEND);
+        return null;
+    }
 
     private Action reactToExternalEvent(Event e) {
         assert !own(e);
@@ -48,6 +114,8 @@ public class Node {
         }
 
         else if (e.eventType == EventType.PACKET_END) {
+            // Note that it is a transmission that may have been closed
+            // already due to a jamming sequence
             closeTransmission();
         }
 
@@ -61,12 +129,11 @@ public class Node {
         }
 
         if (state == State.EAGER_TO_SEND && isLineIdle()) {
+            transitionTo(State.WAITING_INTERPACKET_GAP);
             return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this);
+        } else {
+            return null;
         }
-
-        System.out.println("What else is there...?");
-        System.exit(1);
-        return null;
     }
 
     private int openTransmission() {
@@ -77,28 +144,9 @@ public class Node {
         return (openTransmissions = Math.max(openTransmissions-1, 0));
     }
 
-    private boolean own(Event e) {
-        return e.source == this;
-    }
-
-    private Action nextActionInSequence(Event e) {
-        assert own(e);
-        // react to end of jamming => backoff
-        // 
-        return null;
-    }
-
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
         return 1; // todo: fix me
-    }
-
-    private Action handlePacketReady() {
-        assert state == State.PREPARING_NEXT_PACKET;
-
-        transitionTo(State.EAGER_TO_SEND); // below is going to fuck up state
-
-        return isLineIdle() ? new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this) : null;
     }
 
     private boolean isLineIdle() {
