@@ -24,8 +24,18 @@ public class Node {
     public Action react(Event e) {
         assert e.dest == this;
 
+        /* if own(e) => nextActionInSequence(e) */
+        if (own(e)) {
+            return nextActionInSequence(e);
+        }
+
+        else {
+            return reactToExternalEvent(e);
+        }
+
+        /*
         if (e.eventType == EventType.PACKET_READY) {
-            assert !own(e);
+            assert own(e);
             return handlePacketReady();
         }
 
@@ -76,10 +86,54 @@ public class Node {
             System.exit(1);
             return null;
         }
+        */
+    }
+
+    /*
+    in    PACKET_READY,
+    in    BACKOFF_END;
+    in/ex PREAMBLE_START,
+    in/ex PREAMBLE_END,
+    in/ex PACKET_START,
+    in/ex PACKET_END,
+    in/ex JAMMING_START,
+    in/ex JAMMING_END,
+    */
+
+    private Action reactToExternalEvent(Event e) {
+        assert !own(e);
+
+        if (isInterrupt(e)) {
+            return handleInterrupt();
+        }
+            
+        else if (e.startsTransmission()) {
+            openTransmissionFor(e);
+
+            if (e.eventType == EventType.JAMMING_START) {
+                
+            }            
+        } 
+
+        else if (e.endsTransmission(e)) {
+            closeTransmissionFor(e);
+            // should try to send packet if we are eager AND it isnt just
+            // a preamble_end (because we're immediately gonna receive packet)
+
+        } 
+
+        System.out.println("What else is there...?");
+        System.exit(1);
+        return null;
     }
 
     private boolean own(Event e) {
         return e.source == this;
+    }
+
+    private Action nextActionInSequence(Event e) {
+        assert own(e);
+        return null;
     }
 
     /* this will allow for creating distributions of sizes and such */
@@ -122,6 +176,9 @@ public class Node {
 
     public Action handleInterrupt() {
         System.out.format("%d INTERRUPTED\n", id);
+
+        System.out.println("need to implement something to invalidate the existing events");
+        System.exit(1);
 
         transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
