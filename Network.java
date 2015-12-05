@@ -3,15 +3,17 @@ import java.util.*;
 public class Network {
 
 	private Map<Node, Integer> topology;
-	private EventQueue eventQueue;
+	
+	private EventQueue eventQueue = new EventQueue();
+	
 	private Map<Node, Event> nextEvent = new HashMap<Node, Event>();
 
-	private double currentTime;
+	private Statistics stats = new Statistics();
+
+	private double currentTime = 0.0;
 
 	public Network(Map<Node, Integer> topology) {
 		this.topology = topology;
-		eventQueue = new EventQueue();
-		currentTime = 0.0;
 	}
 
 	private Collection<Node> getMachines() {
@@ -30,14 +32,14 @@ public class Network {
 			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
 				if (action.actionType == ActionType.SEND_PREAMBLE) {
-					sendPreamble(action);
-				} else if (action.actionType == ActionType.SEND_PACKET) {
+					spawnPreambleEvents(action);
+				} /*else if (action.actionType == ActionType.SEND_PACKET) {
 					//sendPacket(action);
 				} else if (action.actionType == ActionType.SEND_JAMMING) {
 					//sendJamming(action);
 				} else if (action.actionType == ActionType.BACKOFF) {
 					//backoff(action);
-				} else {
+				}*/ else {
 					System.out.println("We something");
 					assert false;
 				}
@@ -51,7 +53,7 @@ public class Network {
 		}
 	}	
 
-	private void sendPreamble(Action action) {
+	private void spawnPreambleEvents(Action action) {
 		for (Node dest : getMachines()) {
 
 			double startTime = currentTime;

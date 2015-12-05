@@ -25,12 +25,18 @@ public class Node {
         assert e.dest == this;
 
         if (e.eventType == EventType.PACKET_READY) {
+            assert !own(e);
             return handlePacketReady();
         }
 
-        else if (e.source == this && e.eventType == EventType.PREAMBLE_END) {
+        else if (own(e) && e.eventType == EventType.PREAMBLE_END) {
+            transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
             double duration = nextPacketSize() / Event.TRANSMISSION_RATE;
             return new Action(ActionType.SEND_PACKET, duration, this);
+        }
+
+        else if (own(e) && e.eventType == EventType.PACKET_END) {
+            // successful transmission
         }
 
         else if (e.eventType == EventType.BACKOFF_END) {
@@ -72,6 +78,10 @@ public class Node {
         }
     }
 
+    private boolean own(Event e) {
+        return e.source == this;
+    }
+
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
         return 1; // todo: fix me
@@ -88,7 +98,7 @@ public class Node {
     private Action handlePacketReady() {
         assert state == State.PREPARING_NEXT_PACKET;
 
-        transitionTo(State.EAGER_TO_SEND);
+        transitionTo(State.EAGER_TO_SEND); // below is going to fuck up state
 
         return isLineIdle() ? new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this) : null;
     }
