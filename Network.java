@@ -18,11 +18,54 @@ public class Network {
 		return topology.keySet();
 	}
 
-	private void nextEventByDest(Node node) {
+	public void simulate() {
+		init();
 
+		while (!eventQueue.empty()) {
+			Event event = eventQueue.next();
+			currentTime = event.time;
+
+			Action action = event.dest.react(event);
+
+			// Might not do anything if, say, event is PacketReady
+			if (action != null) {
+				if (action.actionType == Action.SEND_PREAMBLE) {
+					sendPreamble(action);
+				} else if (action.actionType == Action.SEND_PACKET) {
+					sendPacket(action);
+				} else if (action.actionType == Action.SEND_JAMMING) {
+					sendJamming(action);
+				} else if (action.actionType == Action.BACKOFF) {
+					backoff(action);
+				}
+			}
+		}
 	}
 
-	public void simulate() {
+	/* 
+	 * Move each machine into a PREPARING_PACKET state
+	 */
+	private void init() {
+		for (Node machine : getMachines()) {
+			add(machine.start());
+		}
+	}	
+
+	private void sendPreamble(Action action) {
+		for (Node dest : getMachines()) {
+
+			double startTime = currentTime;
+			startTime += timeToReach(action.source, dest);
+
+			Event start = Event.PreambleStart(action.source, startTime);
+			Event end = Event.PreambleEnd(action.source, startTime + action.duration);
+
+			add(start);
+			add(end);
+		}
+	}
+
+	public void xxxxx_simulate() {
 		System.out.println(this);
 		init();
 
@@ -42,15 +85,6 @@ public class Network {
 			if (reaction != null) {
 				generateRelativeEvents(reaction);
 			}
-		}
-	}
-
-	/* 
-	 * Move each machine into a PREPARING_PACKET state
-	 */
-	private void init() {
-		for (Node machine : getMachines()) {
-			add(machine.start());
 		}
 	}
 
@@ -102,10 +136,14 @@ public class Network {
 			return 0.0; // careful to avoid any precision errors
 		}
 
-        double sourcePos = (double) topology.get(e.source);        
-        double destPos   = (double) topology.get(e.dest);
+		return timeToReach(e.source, e.dest);
+	}
 
-        return Math.abs(sourcePos - destPos) / Event.PROPAGATION_SPEED;
+	private double timeToReach(Node source, Node dest) {
+        double sourcePos = (double) topology.get(source);
+        double destPos   = (double) topology.get(dest);
+
+        return Math.abs(sourcePos - destPos) / Event.PROPAGATION_SPEED;		
 	}
 
 	public String toString() {

@@ -33,13 +33,13 @@ public class Node {
     	}
 
         // I'm receiving bits, but I'm not currently sending anything
-        else if (e.startsTransmission()) {
-            openTransmissionFor(e);
-        }
+        // else if (e.startsTransmission()) {
+        //     openTransmissionFor(e);
+        // }
 
-        else if (e.endsTransmission()) {
-            closeTransmissionFor(e);
-        }
+        // else if (e.endsTransmission()) {
+        //     closeTransmissionFor(e);
+        // }
 
         /* if opens new transmission, need to add it to openTransmissions */
 
@@ -56,7 +56,7 @@ public class Node {
     }
 
     private void closeTransmissionFor(Event e) {
-        
+
     }
 
     /* For doing things like clocking PREAMBLE_START->END
