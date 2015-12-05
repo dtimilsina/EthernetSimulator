@@ -26,11 +26,44 @@ public class Node {
 
         if (e.eventType == EventType.PACKET_READY) {
             return handlePacketReady();
-        } 
+        }
+
+        else if (e.source == this && e.eventType == EventType.PREAMBLE_END) {
+            double duration = nextPacketSize() / Event.TRANSMISSION_RATE;
+            return new Action(ActionType.SEND_PACKET, duration, this);
+        }
+
+        else if (e.eventType == EventType.BACKOFF_END) {
+
+        }
 
         else if (isInterrupt(e)) {
             return handleInterrupt();
-        } 
+        }
+
+        else if (e.eventType == EventType.PREAMBLE_START) {
+            // opent ransmission
+        }
+
+        else if (e.eventType == EventType.PREAMBLE_END) {
+            // close transmission
+        }
+
+        else if (e.eventType == EventType.PACKET_START) {
+            // open transmission
+        }
+
+        else if (e.eventType == EventType.PACKET_END) {
+            // close transmission
+        }
+
+        else if (e.eventType == EventType.JAMMING_START) {
+            // remove the PacketStart associated with this jammed
+        }
+
+        else if (e.eventType == EventType.JAMMING_END) {
+            // close transmission
+        }
 
         else {
             System.out.println("Received unhandleable event");
@@ -39,35 +72,10 @@ public class Node {
         }
     }
 
-    // public Event xxxx_react(Event e) {
-    // 	assert e.dest == this;
-
-    //     if (e.source == this) {
-    //         return handleOwnEvent(e); // for clocking the xEnd 
-    //     } 
-
-    //     else if (isInterrupt(e)) {
-    // 		return handleInterrupt();
-    // 	}
-
-    //     // I'm receiving bits, but I'm not currently sending anything
-    //     // else if (e.startsTransmission()) {
-    //     //     openTransmissionFor(e);
-    //     // }
-
-    //     // else if (e.endsTransmission()) {
-    //     //     closeTransmissionFor(e);
-    //     // }
-
-    //     /* if opens new transmission, need to add it to openTransmissions */
-
-    //     /* else if ends transmission and im eager to send */
-    //     else {
-    //         System.out.format("#react cannot handle: %s\n", e);
-    //     	assert false;
-    //     	return null;
-    //     }
-    // }
+    /* this will allow for creating distributions of sizes and such */
+    private int nextPacketSize() {
+        return 1; // todo: fix me
+    }
 
     private void openTransmissionFor(Event e) {
         openTransmissions.add(e);
@@ -77,27 +85,6 @@ public class Node {
 
     }
 
-    /* For doing things like clocking PREAMBLE_START->END
-    * as well as the usual, like PACKET_READY
-    */
-    // private Event handleOwnEvent(Event e) {
-    //     assert e.source == this;
-
-    //     if (e.eventType == EventType.PACKET_READY) {
-    //         return handlePacketReady();
-    //     } 
-
-    //     else if (e.eventType == EventType.PREAMBLE_START) {
-    //         return Event.PreambleEnd(this, Event.PREAMBLE_TIME);
-    //     } 
-
-    //     else {
-    //         System.out.format("Received unprocessable event: %s\n", e);
-    //         assert false;
-    //         return null;
-    //     }
-    // }
-
     private Action handlePacketReady() {
         assert state == State.PREPARING_NEXT_PACKET;
 
@@ -105,14 +92,6 @@ public class Node {
 
         return isLineIdle() ? new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this) : null;
     }
-
-    // private Event handlePacketReady() {
-    //     assert state == State.PREPARING_NEXT_PACKET;
-
-    //     transitionTo(State.EAGER_TO_SEND);
-
-    //     return isLineIdle() ? Event.PreambleStart(this, 0.0) : null;
-    // }
 
     private boolean isLineIdle() {
         return openTransmissions.size() == 0;
@@ -138,14 +117,6 @@ public class Node {
 
         return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this);
     }
-
-    // public Event handleInterrupt() {
-    //     System.out.format("%d INTERRUPTED\n", id);
-
-    // 	transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
-
-    // 	return Event.JammingStart(this, 0.0);
-    // }
 
     public void transitionTo(State newState) {
     	assert this.state != newState;
