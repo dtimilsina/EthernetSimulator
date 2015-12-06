@@ -7,7 +7,7 @@ public enum EventType {
 	JAMMING_START,
 	JAMMING_END,
 	BACKOFF_END,
-	WAIT_END;	
+	WAIT_END;
 }
 
 

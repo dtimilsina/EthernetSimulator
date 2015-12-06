@@ -7,7 +7,7 @@ public class Event implements Comparable<Event> {
     public static double INTERPACKET_GAP = 96.0; // todo: check
     public static double PREAMBLE_TIME = 64.0;
     public static double JAMMING_TIME = 32.0;
-    public static double PACKET_READY_TIME = 100;//SLOT_TIME / 2;
+    public static double PACKET_READY_TIME = 100.0;//SLOT_TIME / 2;
 
     // distance units / time unit
     public static double PROPAGATION_SPEED = 60.0; // 6*10^8 ft/s in ft/bittime
@@ -20,6 +20,7 @@ public class Event implements Comparable<Event> {
     public Node dest;   // Machine to which #time applies
 
     public int id;
+    public int packetId = -1;
 
     public boolean active = true; // Whether the event is still valid
     
@@ -31,6 +32,11 @@ public class Event implements Comparable<Event> {
         this.source = source;
         this.dest = dest;
         this.time = time;        
+    }
+
+    public Event(EventType type, Node source, Node dest, double time, int packetId) {
+        this(type, source, dest, time);
+        this.packetId = packetId;
     }
 
     public static Event PacketReady(Node source) {
@@ -45,7 +51,7 @@ public class Event implements Comparable<Event> {
         return new Double(this.time).compareTo(new Double(other.time));//this.time >= other.time ? 0 : 1;
     }
 
-    public boolean doesTransmit() {
+    public boolean isStartEvent() {
         return this.eventType == EventType.PREAMBLE_START ||
                this.eventType == EventType.PACKET_START   || 
                this.eventType == EventType.JAMMING_START;
@@ -54,7 +60,7 @@ public class Event implements Comparable<Event> {
     public String toString() {
         String destId = "x";
         if (dest != null) { destId = "" + dest.id; }
-        return String.format("t%f m%s -> m%s %s %f", time, source.id, destId, eventType.name(), time);
+        return String.format("pId:%d t%f m%s -> m%s %s %f", packetId, time, source.id, destId, eventType.name(), time);
     }
 
 

@@ -10,9 +10,16 @@ public class Network {
 
 	private double currentTime = 0.0;
 
+	private Map<Node, Set<Integer>> cancelledPackets;
+
 
 	public Network(Map<Node, Integer> topology) {
 		this.topology = topology;
+		 cancelledPackets = new HashMap<Node, Set<Integer>>();
+
+		 for (Node node : getMachines()) {
+		 	cancelledPackets.put(node, new HashSet<Integer>());
+		 }
 	}
 
 	private Collection<Node> getMachines() {
@@ -24,12 +31,21 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty() && i++ < n) {
-			// should filter
-			//System.out.format("Network: \n%s\n", this);
-	        System.out.format("Network: \n%s\n", this);
-			Event event = eventQueue.next();
+	       	Event event = eventQueue.next();
+
+			// Filter END events for cancelled packets
+			if (isPacketCancelled(event)) {
+				System.out.println("SKIPPING");
+				continue;
+			}
+
+			if (event.dest == event.source && event.isStartEvent()) {
+				continue;
+			}
+
 			currentTime = event.time;
 
+			System.out.format("Network: \n%s\n", this);
 			System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
@@ -38,13 +54,17 @@ public class Network {
 			if (action != null) {
 				switch (action.actionType) {
 					case PREPARE_PACKET: 
-						preparePacketEvent(action); 
+						packetReadyEvent(action); 
 						break;
 					case WAIT:
 						waitEvent(action); 
 						break;
 					case BACKOFF:
 						backoffEvent(action);
+						break;
+					case SEND_JAMMING:
+						cancelPackets(action.source, action.packetId);
+						spawnEvents(action);
 						break;
 					default:
 						spawnEvents(action);
@@ -64,17 +84,29 @@ public class Network {
 		}
 	}
 
-	private void preparePacketEvent(Action action) {
+	private boolean isPacketCancelled(Event event) {
+		return event.eventType == EventType.PACKET_END &&
+			cancelledPackets.get(event.source).contains(event.packetId);
+	}
+
+	/* Mark as cancelled any event that is associated with 
+	   this packetId from this source */
+	private void cancelPackets(Node source, int packetId) {
+		cancelledPackets.get(source).add(packetId);
+	}
+
+	private void packetReadyEvent(Action action) {
 		double time = currentTime + action.duration;
-		Event event = new Event(EventType.PACKET_READY, action.source, action.source, time);
+		Event event = new Event(EventType.PACKET_READY, 
+								action.source, 
+								action.source, 
+								time,
+								action.packetId);
 		add(event);
 	}
 
 	private void spawnEvents(Action action) {
 		for (Node dest : getMachines()) {
-
-			double startTime = currentTime;
-			startTime += timeToReach(action.source, dest);
 
 			EventType startType = null;
 			EventType endType = null;
@@ -98,8 +130,21 @@ public class Network {
 					System.exit(1);
 			}
 
-			Event start = new Event(startType, action.source, dest, startTime);
-			Event end = new Event(endType, action.source, dest, startTime + action.duration);
+
+			double startTime = currentTime;
+			startTime += timeToReach(action.source, dest);
+
+			Event start = new Event(startType,
+									action.source,
+									dest, 
+									startTime,
+									action.packetId);
+
+			Event end = new Event(endType, 
+								  action.source, 
+								  dest, 
+								  startTime + action.duration,
+								  action.packetId);
 
 			add(start);
 			add(end);
@@ -108,13 +153,13 @@ public class Network {
 
 	private void waitEvent(Action action) {
 		double time = currentTime + action.duration;
-		Event event = new Event(EventType.WAIT_END, action.source, action.source, time);
+		Event event = new Event(EventType.WAIT_END, action.source, action.source, time, action.packetId);
 		add(event);
 	}
 
 	private void backoffEvent(Action action) {
 		double time = currentTime + action.duration;
-		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time);
+		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time, action.packetId);
 		add(event);
 	}
 
@@ -134,7 +179,7 @@ public class Network {
 		String s = String.format("Time: %f\n", currentTime);
 
 		for (Node m : getMachines()) {
-			s += String.format("[pos%d %s]\n", topology.get(m), m);
+			s += String.format("[%s pos%d]\n", m, topology.get(m));
 		}
 
 		return s;
@@ -142,9 +187,8 @@ public class Network {
 
 	public void printStats() {
 		for (Node node : getMachines()) {
-			System.out.format("id: %d\n", node.id);
+			System.out.format("id %d:", node.id);
 			System.out.format("  succ: %d  coll: %d aborted %d\n", node.stats.successfulPackets, node.stats.collisions, node.stats.packetsAborted);
-			System.out.format("  Dumb ass efficiency: %f\n",node.stats.computeDumbEfficiency());
 		}
 	}
 
@@ -166,7 +210,7 @@ public class Network {
 		// topology.put(new Node(3), 250);
 		// topology.put(new Node(4), 500);
 		// topology.put(new Node(5), 750);
-		Map<Node, Integer> topology = Network.generateTopology(10);
+		Map<Node, Integer> topology = Network.generateTopology(2);
 
 		Network net = new Network(topology);
 

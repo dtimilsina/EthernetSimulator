@@ -6,11 +6,19 @@ public class Action {
 
 	public Node source;
 
+	public int packetId;
+
 	public Action(ActionType actionType, double duration, Node source) {
 		this.actionType = actionType;
 		this.duration = duration;
 		this.source = source;
-	}	
+	}
+
+	public Action(ActionType actionType, double duration, Node source, int packetId) {
+		this(actionType, duration, source);
+		this.packetId = packetId;
+	}
+
 }
 
 /*

@@ -11,7 +11,7 @@ public class EventQueue {
 	public double currentTime = 0.0;
 
 	public void add(Event e) {
-		assert e.time >= currentTime;		
+		assert e.time >= currentTime : "Time misorder: " + e + " not >= " + currentTime;
 		pq.add(e);
 	}
 

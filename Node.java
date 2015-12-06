@@ -11,6 +11,7 @@ public class Node {
     public int openTransmissions = 0;
 
     private int currentPacketSize;
+    public int currentPacketId = 0;
 
     private int timesBackedOff = 0;
 
@@ -34,8 +35,9 @@ public class Node {
         transitionTo(State.PREPARING_NEXT_PACKET);
         timesBackedOff = 0;
         currentPacketSize = nextPacketSize();
+        currentPacketId++;
         double duration = Event.samplePacketReadyTime();
-        return new Action(ActionType.PREPARE_PACKET, duration, this);
+        return new Action(ActionType.PREPARE_PACKET, duration, this, currentPacketId);
     }
 
     public Action react(Event e) {
@@ -58,19 +60,10 @@ public class Node {
         switch (e.eventType) {
             case PACKET_READY:   
                 return handlePacketReady();
-            case PREAMBLE_START: 
-                transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
-                return null;
             case PREAMBLE_END:   
                 return handlePreambleEnd();
-            case PACKET_START: 
-                transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
-                return null;
             case PACKET_END:     
                 return handlePacketEnd();
-            case JAMMING_START:
-                transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
-                return null;
             case JAMMING_END:    
                 return handleBackoff();
             case WAIT_END:       
@@ -131,7 +124,7 @@ public class Node {
         assert state == State.TRANSMITTING_PACKET_PREAMBLE : state.name();
 
         if (isLineIdle()) {
-            //transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
+            transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
             double transmissionTime = currentPacketSize / TRANSMISSION_RATE;
             return new Action(ActionType.SEND_PACKET, transmissionTime, this);
         } else {
@@ -171,7 +164,7 @@ public class Node {
         assert !state.isTransmittingState() : state.name();
 
         if (isLineIdle()) {
-            //transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+            transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
             return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
         }
 
@@ -221,6 +214,7 @@ public class Node {
     }
 
     private int closeTransmission() {
+        assert openTransmissions > 0 : openTransmissions + " open";
         return (openTransmissions = Math.max(openTransmissions-1, 0));
     }
 
@@ -235,7 +229,7 @@ public class Node {
 
     private boolean isInterrupt(Event e) {
     	assert e.source != this;
-    	return e.doesTransmit() && 
+    	return e.isStartEvent() && 
                isTransmitting() && 
                !(state == State.TRANSMITTING_PACKET_PREAMBLE ||
                  state == State.TRANSMITTING_JAMMING_SIGNAL);
@@ -246,7 +240,7 @@ public class Node {
     }
 
     public Action handleInterrupt() {        
-        //transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
+        transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
         stats.addCollision();
 
@@ -262,7 +256,7 @@ public class Node {
     }
 
     public String toString() {
-        return String.format("id:%d state:%s", id, state.name());
+        return String.format("m%d state:%s", id, state.name());
     }
 
 
