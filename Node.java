@@ -2,7 +2,10 @@ import java.util.*;
 
 public class Node {
 
-    private final double TRANSMISSION_RATE = 10.0;
+    private final int MIN_PACKET_SIZE = 512;
+    private final int MAX_PACKET_SIZE = 2048;//12144;
+
+    private final double TRANSMISSION_RATE = 10000000.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
     public int openTransmissions = 0;
@@ -12,6 +15,8 @@ public class Node {
     private int timesBackedOff = 0;
 
     public Statistics stats = new Statistics();
+
+    Random rand = new Random(10);
 
 
     public Node(int id) {
@@ -146,7 +151,7 @@ public class Node {
 
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
-        return 1; // todo: fix me
+        return rand.nextInt(MAX_PACKET_SIZE - MIN_PACKET_SIZE) + MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
     }
 
     private boolean isLineIdle() {

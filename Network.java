@@ -6,8 +6,6 @@ public class Network {
 	
 	private EventQueue eventQueue = new EventQueue();
 	
-	private Map<Node, Event> nextEvent = new HashMap<Node, Event>();
-
 	private Statistics stats = new Statistics();
 
 	private double currentTime = 0.0;
@@ -28,6 +26,8 @@ public class Network {
 			System.out.format("Network: \n%s\n", this);
 			Event event = eventQueue.next();
 			currentTime = event.time;
+
+			System.out.format("Next event: %s\n", event);
 
 			Action action = event.dest.react(event);
 
@@ -108,12 +108,6 @@ public class Network {
 
 	private void add(Event e) {
 		assert e.time >= currentTime;
-
-		if (!nextEvent.containsKey(e.dest) || 
-			nextEvent.get(e.dest).time > e.time) {
-			nextEvent.put(e.dest, e);
-		}
-
 		eventQueue.add(e);
 	}
 
@@ -128,11 +122,7 @@ public class Network {
 		String s = String.format("Time: %f\n", currentTime);
 
 		for (Node m : getMachines()) {
-			String nes = "[no next event]";
-			if (nextEvent.containsKey(m)) {
-				nes = nextEvent.get(m).toString();
-			}
-			s += String.format("[pos%d %s] next:[%s]\n", topology.get(m), m, nes);
+			s += String.format("[pos%d %s]\n", topology.get(m), m);
 		}
 
 		return s;

@@ -4,12 +4,13 @@ public class Event implements Comparable<Event> {
 
     // move these. maybe move things in terms of slot_times only?
     public static double SLOT_TIME = 512.0;
-    public static double INTERPACKET_GAP = 0.96; // todo: check
+    public static double INTERPACKET_GAP = 96.0; // todo: check
     public static double PREAMBLE_TIME = 64.0;
     public static double JAMMING_TIME = 32.0;
     public static double PACKET_READY_TIME = 2.0;
-    public static double PROPAGATION_SPEED = 4.0; // distance units / time unit
 
+    // distance units / time unit
+    public static double PROPAGATION_SPEED = 60.0; // 6*10^8 ft/s in ft/bittime
 
     public EventType eventType;
     
