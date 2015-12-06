@@ -15,7 +15,8 @@ public class Node {
     private Map<Node, Integer> openTransmissions = new HashMap<Node, Integer>();
 
     private int currentPacketSize;
-    public int currentPacketId = -1;
+    //public int currentPacketId = -1;
+    public int packetAttempt = 0;
 
     private int timesBackedOff = 0;
 
@@ -38,16 +39,17 @@ public class Node {
     }
 
     private Action prepareNextPacket() {
-        if (xxx++ > 0) {
-            System.out.println("called " + xxx + " many times");
-            System.exit(1);
-        }
+        // if (xxx++ > 0) {
+        //     System.out.println("called " + xxx + " many times");
+        //     System.exit(1);
+        // }
         transitionTo(State.PREPARING_NEXT_PACKET);
         timesBackedOff = 0;
         currentPacketSize = nextPacketSize();
-        currentPacketId++;
+        //currentPacketId++;
+        //packetAttempt++;
         double duration = Event.samplePacketReadyTime();
-        return new Action(ActionType.PREPARE_PACKET, duration, this, currentPacketId);
+        return new Action(ActionType.PREPARE_PACKET, duration, this, packetAttempt);
     }
 
     public Action react(Event e) {
@@ -67,7 +69,7 @@ public class Node {
         switch (e.eventType) {
             case PACKET_READY:   
                 return handlePacketReady();
-            case PREAMBLE_END:   
+            case PREAMBLE_END:
                 return handlePreambleEnd();
             case PACKET_END:     
                 return handlePacketEnd();
@@ -116,8 +118,8 @@ public class Node {
     private Action handleBackoffEnd() {
         assert state == State.WAITING_FOR_BACKOFF : state.name();
 
-        System.out.println("----\n" + id + " Backoff end");
-        System.out.println("openconn " + openTransmissions);
+        //System.out.println("----\n" + id + " Backoff end");
+        //System.out.println("openconn " + openTransmissions);
 
         return sendIfIdle();
     }
@@ -127,18 +129,19 @@ public class Node {
 
         stats.addSuccessfulPacket(currentPacketSize);
 
-        System.out.println("handlePacketEnd()");
-        System.exit(0);
+        //System.out.println("handlePacketEnd()");
+        //System.exit(0);
         return prepareNextPacket();
     }
 
     private Action handlePreambleEnd() {
         assert state == State.TRANSMITTING_PACKET_PREAMBLE : state.name();
+        //System.out.println("WOO");
 
         if (isLineIdle()) {
             transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
             double transmissionTime = currentPacketSize / TRANSMISSION_RATE;
-            return new Action(ActionType.SEND_PACKET, transmissionTime, this);
+            return new Action(ActionType.SEND_PACKET, transmissionTime, this, packetAttempt);
         } else {
             return handleInterrupt();
         }        
@@ -152,13 +155,13 @@ public class Node {
             stats.addAbort();
             timesBackedOff = 0;
 
-            System.out.println("handleBackoff()");
-            System.exit(0);
+            //System.out.println("handleBackoff()");
+            //System.exit(0);
             return prepareNextPacket();
         }
 
         else {
-            System.out.println("Machine " + id + " backing off");
+            //System.out.println("Machine " + id + " backing off");
             int slots = nextBackoffSlots();
 
             stats.addSlotsWaited(slots);
@@ -167,14 +170,14 @@ public class Node {
 
             double duration = slots * Event.SLOT_TIME;
             timesBackedOff++;
-            return new Action(ActionType.BACKOFF, duration, this);
+            return new Action(ActionType.BACKOFF, duration, this, packetAttempt);
         }
     }
 
     private int nextBackoffSlots() {
         int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : 1024;
         int slots = rand.nextInt(maxWait);
-        System.out.println("Machine " + id + " waiting " + slots);
+        //System.out.println("Machine " + id + " waiting " + slots);
         return slots;
     }
 
@@ -182,8 +185,9 @@ public class Node {
         assert !state.isTransmittingState() : state.name();
 
         if (isLineIdle()) {
+            packetAttempt++;
             transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
-            return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
+            return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this, packetAttempt);
         }
 
         else {
@@ -214,7 +218,7 @@ public class Node {
         // receipt of another end (ie some next time we get to this method)
         if (state == State.EAGER_TO_SEND && isLineIdle()) {
             transitionTo(State.WAITING_INTERPACKET_GAP);
-            return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this);
+            return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this, packetAttempt);
         } else {
             return null;
         }
@@ -227,7 +231,7 @@ public class Node {
     private void openTransmission(Node source, int packetId) {
         assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
-        System.out.println("m" + id + " opening " + source.id);
+        //System.out.println("m" + id + " opening " + source.id);
 
         openTransmissions.put(source, packetId);
     }
@@ -236,7 +240,7 @@ public class Node {
         assert openTransmissions.containsKey(source);
 
         openTransmissions.remove(source);
-        System.out.println("m" + id + " closing " + source.id);        
+        //System.out.println("m" + id + " closing " + source.id);        
 
         assert !openTransmissions.containsKey(source);
     }
@@ -267,7 +271,7 @@ public class Node {
 
         stats.addCollision();
 
-        return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this);
+        return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this, packetAttempt);
     }
 
     public void transitionTo(State newState) {    	

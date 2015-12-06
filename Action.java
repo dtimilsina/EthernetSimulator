@@ -8,7 +8,7 @@ public class Action {
 
 	public int packetId;
 
-	public Action(ActionType actionType, double duration, Node source) {
+	private Action(ActionType actionType, double duration, Node source) {
 		this.actionType = actionType;
 		this.duration = duration;
 		this.source = source;

@@ -39,13 +39,30 @@ public class Event implements Comparable<Event> {
     }
 
     public int compareTo(Event other) {
-        return new Double(this.time).compareTo(new Double(other.time));//this.time >= other.time ? 0 : 1;
+        int cmp = new Double(this.time).compareTo(new Double(other.time));
+    
+        if (cmp == 0) {
+            if (this.isStartEvent() && other.isEndEvent()) {
+                return 1;
+            } else if (this.isEndEvent() && other.isStartEvent()) {
+                return -1;
+            }
+        }
+
+        return cmp;
+        //return new Double(this.time).compareTo(new Double(other.time));//this.time >= other.time ? 0 : 1;
     }
 
     public boolean isStartEvent() {
         return this.eventType == EventType.PREAMBLE_START ||
                this.eventType == EventType.PACKET_START   || 
                this.eventType == EventType.JAMMING_START;
+    }
+
+    public boolean isEndEvent() {
+        return this.eventType == EventType.PREAMBLE_END ||
+               this.eventType == EventType.PACKET_END ||
+               this.eventType == EventType.JAMMING_END;
     }
 
     public String toString() {
@@ -73,7 +90,18 @@ public class Event implements Comparable<Event> {
 
     /** Testing **/
     public static void main(String[] args) {
-
+        EventQueue q = new EventQueue();
+        Event start = new Event(EventType.PREAMBLE_END, new Node(1), new Node(2), 0.0, 0);
+        Event end = new Event(EventType.JAMMING_START, new Node(3), new Node(4), 0.0, 0);
+        System.out.println(start);
+        System.out.println(end);
+        q.add(start);
+        q.add(end);
+        assert q.next() == start;
+        assert q.next() == end;
+        q.add(end);
+        q.add(start);
+        assert q.next() == start;
     }
 }
 

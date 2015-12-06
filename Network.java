@@ -30,24 +30,26 @@ public class Network {
 		init();
 
 		int i = 0;
-		while (!eventQueue.empty()){// && i++ < n) {
-			System.out.println("---------------------");
+		while (!eventQueue.empty() && i++ < n) {
+			//System.out.println("---------------------");
 
 	       	Event event = eventQueue.next();
 
 			// Filter END events for cancelled packets
 			if (isPacketCancelled(event)) {
+				//System.out.println("Skipping cancelled " + event);
 				continue;
 			}
 
-			if (event.dest == event.source && event.isStartEvent()) {				
+			if (event.dest == event.source && event.isStartEvent()) {
+				//System.out.println("Skipping useless " + event);
 				continue;
 			}
 
 			currentTime = event.time;
 
-			System.out.format("Network: \n%s\n", this);
-			System.out.format("Next event: %s\n\n", event);
+			//System.out.format("Network: \n%s\n", this);
+			//System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
 
@@ -169,7 +171,7 @@ public class Network {
 	}
 
 	private void backoffEvent(Action action) {
-		System.out.println(action.source.id + " backingoff " + action.duration);
+		//System.out.println(action.source.id + " backingoff " + action.duration);
 		double time = currentTime + action.duration;
 		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time, action.packetId);
 		add(event);
@@ -222,7 +224,7 @@ public class Network {
 		// topology.put(new Node(3), 250);
 		// topology.put(new Node(4), 500);
 		// topology.put(new Node(5), 750);
-		Map<Node, Integer> topology = Network.generateTopology(2);
+		Map<Node, Integer> topology = Network.generateTopology(16);
 
 		Network net = new Network(topology);
 
