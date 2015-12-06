@@ -186,7 +186,10 @@ public class Node {
     }
 
     public void transitionTo(State newState) {
-    	assert this.state != newState;
+	if (this.state == newState){
+	    System.out.println(id);
+	}
+	assert(this.state != newState);
     	this.state = newState;
     }
 

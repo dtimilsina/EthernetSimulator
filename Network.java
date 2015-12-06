@@ -24,11 +24,11 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty() && i++ < n) {
-			//System.out.format("Network: \n%s\n", this);
+		        System.out.format("Network: \n%s\n", this);
 			Event event = eventQueue.next();
 			currentTime = event.time;
 
-			//System.out.format("Next event: %s\n\n", event);
+			System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
 
