@@ -196,8 +196,6 @@ public class Node {
         assert !own(e);
         assert e.eventType != EventType.PACKET_READY;
 
-        // when we see the packet_end or jamming_end for a given pid
-        // we can remove it from our queue
         if (e.eventType == EventType.PREAMBLE_START) {
             openTransmission(e.source, e.packetId);
         }
@@ -206,25 +204,6 @@ public class Node {
                  e.eventType == EventType.JAMMING_END) {
             closeTransmission(e.source);
         }
-
-
-        // if (e.eventType == EventType.PREAMBLE_START) {
-        //     openTransmission();
-        // }
-
-        // else if (e.eventType == EventType.PACKET_END) {
-        //     closeTransmission();
-        // }
-
-        // else if (e.eventType == EventType.JAMMING_START) {
-        //     closeTransmission(); // Close the actual packet expectation
-        //     openTransmission();  // Start jamming sequence transmission
-        // } 
-
-        // else if (e.eventType == EventType.JAMMING_END) {
-        //     closeTransmission(); // End jamming sequence
-        // }
-
 
         if (isInterrupt(e)) {
             return handleInterrupt(); //preamble,jamming,packet starts
@@ -248,6 +227,8 @@ public class Node {
     private void openTransmission(Node source, int packetId) {
         assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
+        System.out.println("m" + id + " opening " + source.id);
+
         openTransmissions.put(source, packetId);
     }
 
@@ -255,6 +236,7 @@ public class Node {
         assert openTransmissions.containsKey(source);
 
         openTransmissions.remove(source);
+        System.out.println("m" + id + " closing " + source.id);        
 
         assert !openTransmissions.containsKey(source);
     }

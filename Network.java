@@ -31,19 +31,12 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty()){// && i++ < n) {
-			//System.out.println("---------");
-			//System.out.println("q" + eventQueue);
+			System.out.println("---------------------");
 
 	       	Event event = eventQueue.next();
 
-	       	if (event.eventType == EventType.JAMMING_END) {
-	       		System.out.println("@@@@@jammend");
-	       	}
 			// Filter END events for cancelled packets
 			if (isPacketCancelled(event)) {
-				System.out.println("x CANCELLED PACKET");
-				System.out.println("   " + event);
-//				System.exit(0);
 				continue;
 			}
 
@@ -53,21 +46,10 @@ public class Network {
 
 			currentTime = event.time;
 
-			//System.out.format("Network: \n%s\n", this);
-			//System.out.format("Next event: %s\n\n", event);
+			System.out.format("Network: \n%s\n", this);
+			System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
-
-			if (event.eventType == EventType.JAMMING_END){// && event.source == event.dest) {
-				System.out.println("JAMMING_END encountered");
-				System.out.println("Event: " + event);
-				System.out.println("Reaction: " + action);
-				//assert action.actionType == ActionType.BACKOFF : action.actionType.name();
-			} 
-
-			else if (event.eventType == EventType.JAMMING_START) {
-				System.out.println("START JAMMING");
-			}
 
 			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
@@ -120,8 +102,6 @@ public class Network {
 	/* Mark as cancelled any event that is associated with 
 	   this packetId from this source */
 	private void cancelPackets(Action action) {
-		//System.out.println("Canceled by action: " + action);
-		//System.out.println("  Cancelling packet m" + action.source.id + " p" + action.packetId);
 		cancelledPackets.get(action.source).add(action.packetId);
 	}
 
@@ -179,11 +159,6 @@ public class Network {
 			int size = eventQueue.size();
 			add(start);
 			add(end);
-			if (endType == EventType.JAMMING_END) {
-				System.out.println("```````hi " + end.dest.id);
-				System.out.println("   " + end);
-			}
-			assert eventQueue.size() == size + 2 : "wtf size";
 		}
 	}
 
@@ -254,5 +229,6 @@ public class Network {
 		net.simulate(Integer.parseInt(args[0]));
 
 		net.printStats();
+		System.out.println("DONE");
 	}
 }
