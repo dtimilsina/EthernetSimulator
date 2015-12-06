@@ -194,8 +194,6 @@ public class Node {
             System.out.format("States are %s\n", newState.name());
             //System.exit(1);
         }
-        //assert this.state != newState;
-
     	this.state = newState;
     }
 
