@@ -25,7 +25,8 @@ public class Node {
     }
 
     public Action start() {
-        assert state == State.UNINITIALIZED;
+        assert state == State.UNINITIALIZED : state.name();;
+
         return prepareNextPacket();
     }
 
@@ -39,6 +40,7 @@ public class Node {
 
     public Action react(Event e) {
         assert e.dest == this;
+
         return own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
     }
 
@@ -51,25 +53,47 @@ public class Node {
         assert own(e);
 
         switch (e.eventType) {
-            case PACKET_READY:   return sendIfIdle();
+            case PACKET_READY:   return handlePacketReady();
             case PREAMBLE_START: return null;
             case PREAMBLE_END:   return handlePreambleEnd();
             case PACKET_START:   return null;
-            case PACKET_END:     return handleSuccessfulPacket();
+            case PACKET_END:     return handlePacketEnd();
             case JAMMING_START:  return null;
             case JAMMING_END:    return handleBackoff();
-            case WAIT_END:       return sendIfIdle();
-            case BACKOFF_END:    return sendIfIdle();
+            case WAIT_END:       return handleWaitEnd();
+            case BACKOFF_END:    return handleBackoffEnd();
             default:             return null;
         }
     }
 
-    private Action handleSuccessfulPacket() {
+    private Action handlePacketReady() {
+        assert state == State.PREPARING_NEXT_PACKET : state.name();
+
+        return sendIfIdle();
+    }
+
+    private Action handleWaitEnd() {
+        assert state == State.EAGER_TO_SEND : state.name();
+
+        return sendIfIdle();
+    }
+
+    private Action handleBackoffEnd() {
+        assert state == State.WAITING_FOR_BACKOFF : state.name();
+
+        return sendIfIdle();
+    }
+
+    private Action handlePacketEnd() {
+        assert state == State.TRANSMITTING_PACKET_CONTENTS : state.name();
+
         stats.addSuccessfulPacket(currentPacketSize);
         return prepareNextPacket();
     }
 
     private Action handlePreambleEnd() {
+        assert state == State.TRANSMITTING_PACKET_PREAMBLE : state.name();
+
         if (isLineIdle()) {
             transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
             double transmissionTime = currentPacketSize / TRANSMISSION_RATE;
@@ -80,7 +104,9 @@ public class Node {
     }
 
     private Action handleBackoff() {
+        assert state == State.TRANSMITTING_JAMMING_SIGNAL : state.name();
         assert timesBackedOff <= 16;
+
         if (timesBackedOff == 16) {
             stats.addAbort();
             timesBackedOff = 0;
@@ -106,6 +132,8 @@ public class Node {
     }
 
     private Action sendIfIdle() {
+        assert !state.isTransmittingState() : state.name();
+
         if (isLineIdle()) {
             transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
             return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
