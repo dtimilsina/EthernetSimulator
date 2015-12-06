@@ -59,6 +59,7 @@ public class Node {
             case JAMMING_START:  return null;
             case JAMMING_END:    return handleBackoff();
             case WAIT_END:       return sendIfIdle();
+            case BACKOFF_END:    return sendIfIdle();
             default:             return null;
         }
     }
@@ -92,9 +93,10 @@ public class Node {
             stats.addSlotsWaited(slots);
 
             transitionTo(State.WAITING_FOR_BACKOFF);
+
             double duration = slots * Event.SLOT_TIME;
             timesBackedOff++;
-            return new Action(ActionType.WAIT, duration, this);
+            return new Action(ActionType.BACKOFF, duration, this);
         }
     }
 
@@ -109,8 +111,10 @@ public class Node {
             return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
         }
 
-        transitionTo(State.EAGER_TO_SEND);
-        return null;
+        else {
+            transitionTo(State.EAGER_TO_SEND);
+            return null;
+        }
     }
 
     private Action reactToExternalEvent(Event e) {
@@ -162,7 +166,7 @@ public class Node {
     }
 
     private boolean isLineIdle() {
-        return openTransmissions == 0;
+        return openTransmissions == 0;// && !isTransmitting();
     }
 
     private boolean isInterrupt(Event e) {
@@ -185,8 +189,13 @@ public class Node {
         return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this);
     }
 
-    public void transitionTo(State newState) {
-    	assert this.state != newState;
+    public void transitionTo(State newState) {    	
+        if (this.state == newState) {
+            System.out.format("States are %s\n", newState.name());
+            //System.exit(1);
+        }
+        //assert this.state != newState;
+
     	this.state = newState;
     }
 

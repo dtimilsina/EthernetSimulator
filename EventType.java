@@ -6,7 +6,8 @@ public enum EventType {
 	PACKET_END,
 	JAMMING_START,
 	JAMMING_END,
-	WAIT_END;
+	BACKOFF_END,
+	WAIT_END;	
 }
 
 

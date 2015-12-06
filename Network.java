@@ -24,6 +24,7 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty() && i++ < n) {
+			// should filter
 			//System.out.format("Network: \n%s\n", this);
 			Event event = eventQueue.next();
 			currentTime = event.time;
@@ -40,6 +41,9 @@ public class Network {
 						break;
 					case WAIT:
 						waitEvent(action); 
+						break;
+					case BACKOFF:
+						backoffEvent(action);
 						break;
 					default:
 						spawnEvents(action);
@@ -107,6 +111,12 @@ public class Network {
 		add(event);
 	}
 
+	private void backoffEvent(Action action) {
+		double time = currentTime + action.duration;
+		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time);
+		add(event);
+	}
+
 	private void add(Event e) {
 		assert e.time >= currentTime;
 		eventQueue.add(e);
@@ -155,7 +165,7 @@ public class Network {
 		// topology.put(new Node(3), 250);
 		// topology.put(new Node(4), 500);
 		// topology.put(new Node(5), 750);
-		Map<Node, Integer> topology = Network.generateTopology(24);
+		Map<Node, Integer> topology = Network.generateTopology(10);
 
 		Network net = new Network(topology);
 
