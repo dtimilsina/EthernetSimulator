@@ -31,7 +31,7 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty() && i++ < n) {
-			//System.out.println("---------------------");
+			Debug.print("----------", 1);
 
 	       	Event event = eventQueue.next();
 
@@ -224,6 +224,11 @@ public class Network {
 		// topology.put(new Node(3), 250);
 		// topology.put(new Node(4), 500);
 		// topology.put(new Node(5), 750);
+
+		if (args.length > 1) {
+			Debug.threshold = Integer.parseInt(args[1]);
+		}
+
 		Map<Node, Integer> topology = Network.generateTopology(16);
 
 		Network net = new Network(topology);

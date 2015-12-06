@@ -8,7 +8,6 @@ public class Node {
     private final double TRANSMISSION_RATE = 1.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
-    //public int openTransmissions = 0;
 
     // this should just be a set. keeping it like this for now so that
     // we can also llook at the packet id 
@@ -24,8 +23,7 @@ public class Node {
 
     Random rand;
 
-    int xxx = 0;
-
+    //int xxx = 0;
 
     public Node(int id) {
 		this.id = id;
