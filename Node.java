@@ -8,16 +8,22 @@ public class Node {
     private final double TRANSMISSION_RATE = 1.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
-    public int openTransmissions = 0;
+    //public int openTransmissions = 0;
+
+    // this should just be a set. keeping it like this for now so that
+    // we can also llook at the packet id 
+    private Map<Node, Integer> openTransmissions = new HashMap<Node, Integer>();
 
     private int currentPacketSize;
-    public int currentPacketId = 0;
+    public int currentPacketId = -1;
 
     private int timesBackedOff = 0;
 
     public Statistics stats = new Statistics();
 
     Random rand;
+
+    int xxx = 0;
 
 
     public Node(int id) {
@@ -32,6 +38,10 @@ public class Node {
     }
 
     private Action prepareNextPacket() {
+        if (xxx++ > 0) {
+            System.out.println("called " + xxx + " many times");
+            System.exit(1);
+        }
         transitionTo(State.PREPARING_NEXT_PACKET);
         timesBackedOff = 0;
         currentPacketSize = nextPacketSize();
@@ -53,9 +63,6 @@ public class Node {
     /* Externally-clocked internal events */
     private Action nextActionInSequence(Event e) {
         assert own(e);
-
-        // make sure e is acceptable given our current state
-        //assert isViable(e) : "Got " + e + " when state " + state.name();
 
         switch (e.eventType) {
             case PACKET_READY:   
@@ -109,6 +116,9 @@ public class Node {
     private Action handleBackoffEnd() {
         assert state == State.WAITING_FOR_BACKOFF : state.name();
 
+        System.out.println("----\n" + id + " Backoff end");
+        System.out.println("openconn " + openTransmissions);
+
         return sendIfIdle();
     }
 
@@ -117,6 +127,8 @@ public class Node {
 
         stats.addSuccessfulPacket(currentPacketSize);
 
+        System.out.println("handlePacketEnd()");
+        System.exit(0);
         return prepareNextPacket();
     }
 
@@ -139,10 +151,14 @@ public class Node {
         if (timesBackedOff == 16) {
             stats.addAbort();
             timesBackedOff = 0;
+
+            System.out.println("handleBackoff()");
+            System.exit(0);
             return prepareNextPacket();
         }
 
         else {
+            System.out.println("Machine " + id + " backing off");
             int slots = nextBackoffSlots();
 
             stats.addSlotsWaited(slots);
@@ -156,8 +172,10 @@ public class Node {
     }
 
     private int nextBackoffSlots() {
-        int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, timesBackedOff) : 1024;
-        return rand.nextInt(maxWait);
+        int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : 1024;
+        int slots = rand.nextInt(maxWait);
+        System.out.println("Machine " + id + " waiting " + slots);
+        return slots;
     }
 
     private Action sendIfIdle() {
@@ -178,29 +196,43 @@ public class Node {
         assert !own(e);
         assert e.eventType != EventType.PACKET_READY;
 
+        // when we see the packet_end or jamming_end for a given pid
+        // we can remove it from our queue
+        if (e.eventType == EventType.PREAMBLE_START) {
+            openTransmission(e.source, e.packetId);
+        }
+
+        else if (e.eventType == EventType.PACKET_END ||
+                 e.eventType == EventType.JAMMING_END) {
+            closeTransmission(e.source);
+        }
+
+
+        // if (e.eventType == EventType.PREAMBLE_START) {
+        //     openTransmission();
+        // }
+
+        // else if (e.eventType == EventType.PACKET_END) {
+        //     closeTransmission();
+        // }
+
+        // else if (e.eventType == EventType.JAMMING_START) {
+        //     closeTransmission(); // Close the actual packet expectation
+        //     openTransmission();  // Start jamming sequence transmission
+        // } 
+
+        // else if (e.eventType == EventType.JAMMING_END) {
+        //     closeTransmission(); // End jamming sequence
+        // }
+
+
         if (isInterrupt(e)) {
-            return handleInterrupt();
+            return handleInterrupt(); //preamble,jamming,packet starts
         }
 
-        else if (e.eventType == EventType.PREAMBLE_START) {
-            openTransmission();
-        }
-
-        else if (e.eventType == EventType.PACKET_END) {
-            // Note that it is a transmission that may have been closed
-            // already due to a jamming sequence
-            closeTransmission();
-        }
-
-        else if (e.eventType == EventType.JAMMING_START) {
-            closeTransmission(); // Close the actual packet expectation
-            openTransmission();  // Start jamming sequence transmission
-        } 
-
-        else if (e.eventType == EventType.JAMMING_END) {
-            closeTransmission(); // End jamming sequence
-        }
-
+        // If line is idle, we'll wait interpacket gap
+        // otherwise we'll clock our next transmisison attempt by the 
+        // receipt of another end (ie some next time we get to this method)
         if (state == State.EAGER_TO_SEND && isLineIdle()) {
             transitionTo(State.WAITING_INTERPACKET_GAP);
             return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this);
@@ -209,13 +241,22 @@ public class Node {
         }
     }
 
-    private int openTransmission() {
-        return ++openTransmissions;
+    private int numberOpenTransmissions() {
+        return openTransmissions.keySet().size();
     }
 
-    private int closeTransmission() {
-        assert openTransmissions > 0 : openTransmissions + " open";
-        return (openTransmissions = Math.max(openTransmissions-1, 0));
+    private void openTransmission(Node source, int packetId) {
+        assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
+
+        openTransmissions.put(source, packetId);
+    }
+
+    private void closeTransmission(Node source) {
+        assert openTransmissions.containsKey(source);
+
+        openTransmissions.remove(source);
+
+        assert !openTransmissions.containsKey(source);
     }
 
     /* this will allow for creating distributions of sizes and such */
@@ -224,7 +265,7 @@ public class Node {
     }
 
     private boolean isLineIdle() {
-        return openTransmissions == 0;// && !isTransmitting();
+        return numberOpenTransmissions() == 0;// && !isTransmitting();
     }
 
     private boolean isInterrupt(Event e) {
@@ -248,10 +289,8 @@ public class Node {
     }
 
     public void transitionTo(State newState) {    	
-        if (this.state == newState) {
-            System.out.format("States are %s\n", newState.name());
-            //System.exit(1);
-        }
+        assert this.state != newState : state.name();
+
     	this.state = newState;
     }
 

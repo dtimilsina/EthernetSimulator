@@ -19,20 +19,9 @@ public class Action {
 		this.packetId = packetId;
 	}
 
+	public String toString() {
+		return String.format("p%d %s m%d d%f", packetId, actionType.name(), source.id, duration);
+	}
+
 }
 
-/*
-Action a; (PREAMBLE) => EVENT[PREAMBLE_START] & EVENT[PREAMBLE_END]
-
-for each  node:
-	for start and end
-	Event start;
-	start.time = currentTime + propTime;
-	start.source = a.source;
-	start.dest = node;
-
-	Event end;
-	end.time = current  + a.duration + propTime;
-
-
-*/

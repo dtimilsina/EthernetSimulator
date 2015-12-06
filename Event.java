@@ -20,27 +20,18 @@ public class Event implements Comparable<Event> {
     public Node dest;   // Machine to which #time applies
 
     public int id;
-    public int packetId = -1;
+    public Integer packetId;
 
     public boolean active = true; // Whether the event is still valid
     
     static Random rand = new Random(1);
 
-
-    public Event(EventType type, Node source, Node dest, double time) {
+    public Event(EventType type, Node source, Node dest, double time, int packetId) {
         this.eventType = type;
         this.source = source;
         this.dest = dest;
         this.time = time;        
-    }
-
-    public Event(EventType type, Node source, Node dest, double time, int packetId) {
-        this(type, source, dest, time);
         this.packetId = packetId;
-    }
-
-    public static Event PacketReady(Node source) {
-        return new Event(EventType.PACKET_READY, source, source, Event.samplePacketReadyTime());
     }
 
     public static double samplePacketReadyTime() {
@@ -60,7 +51,7 @@ public class Event implements Comparable<Event> {
     public String toString() {
         String destId = "x";
         if (dest != null) { destId = "" + dest.id; }
-        return String.format("pId:%d t%f m%s -> m%s %s %f", packetId, time, source.id, destId, eventType.name(), time);
+        return String.format("p%d t%f m%s -> m%s %s %f", packetId, time, source.id, destId, eventType.name(), time);
     }
 
 

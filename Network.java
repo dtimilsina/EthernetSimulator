@@ -30,25 +30,44 @@ public class Network {
 		init();
 
 		int i = 0;
-		while (!eventQueue.empty() && i++ < n) {
+		while (!eventQueue.empty()){// && i++ < n) {
+			//System.out.println("---------");
+			//System.out.println("q" + eventQueue);
+
 	       	Event event = eventQueue.next();
 
+	       	if (event.eventType == EventType.JAMMING_END) {
+	       		System.out.println("@@@@@jammend");
+	       	}
 			// Filter END events for cancelled packets
 			if (isPacketCancelled(event)) {
-				System.out.println("SKIPPING");
+				System.out.println("x CANCELLED PACKET");
+				System.out.println("   " + event);
+//				System.exit(0);
 				continue;
 			}
 
-			if (event.dest == event.source && event.isStartEvent()) {
+			if (event.dest == event.source && event.isStartEvent()) {				
 				continue;
 			}
 
 			currentTime = event.time;
 
-			System.out.format("Network: \n%s\n", this);
-			System.out.format("Next event: %s\n\n", event);
+			//System.out.format("Network: \n%s\n", this);
+			//System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
+
+			if (event.eventType == EventType.JAMMING_END){// && event.source == event.dest) {
+				System.out.println("JAMMING_END encountered");
+				System.out.println("Event: " + event);
+				System.out.println("Reaction: " + action);
+				//assert action.actionType == ActionType.BACKOFF : action.actionType.name();
+			} 
+
+			else if (event.eventType == EventType.JAMMING_START) {
+				System.out.println("START JAMMING");
+			}
 
 			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
@@ -63,13 +82,18 @@ public class Network {
 						backoffEvent(action);
 						break;
 					case SEND_JAMMING:
-						cancelPackets(action.source, action.packetId);
+						cancelPackets(action);
 						spawnEvents(action);
 						break;
 					default:
 						spawnEvents(action);
 				}
 			}
+
+			else {
+				//System.out.println("NULL REACTION TO:");
+				//System.out.println("  event: " + event);
+			}			
 		}
 	}
 
@@ -79,20 +103,26 @@ public class Network {
 			Event event = new Event(EventType.PACKET_READY,
 									machine,
 									machine,
-									currentTime + action.duration);
+									currentTime + action.duration,
+									action.packetId);
 			add(event);
 		}
 	}
 
 	private boolean isPacketCancelled(Event event) {
-		return event.eventType == EventType.PACKET_END &&
-			cancelledPackets.get(event.source).contains(event.packetId);
+		// preamble_end and jamming_start could become reordered
+		// just due to tiebreaker
+		return (event.eventType == EventType.PACKET_END ||
+				event.eventType == EventType.PREAMBLE_END) 
+			&& cancelledPackets.get(event.source).contains(event.packetId);
 	}
 
 	/* Mark as cancelled any event that is associated with 
 	   this packetId from this source */
-	private void cancelPackets(Node source, int packetId) {
-		cancelledPackets.get(source).add(packetId);
+	private void cancelPackets(Action action) {
+		//System.out.println("Canceled by action: " + action);
+		//System.out.println("  Cancelling packet m" + action.source.id + " p" + action.packetId);
+		cancelledPackets.get(action.source).add(action.packetId);
 	}
 
 	private void packetReadyEvent(Action action) {
@@ -146,9 +176,15 @@ public class Network {
 								  startTime + action.duration,
 								  action.packetId);
 
+			int size = eventQueue.size();
 			add(start);
 			add(end);
-		}		
+			if (endType == EventType.JAMMING_END) {
+				System.out.println("```````hi " + end.dest.id);
+				System.out.println("   " + end);
+			}
+			assert eventQueue.size() == size + 2 : "wtf size";
+		}
 	}
 
 	private void waitEvent(Action action) {
@@ -158,6 +194,7 @@ public class Network {
 	}
 
 	private void backoffEvent(Action action) {
+		System.out.println(action.source.id + " backingoff " + action.duration);
 		double time = currentTime + action.duration;
 		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time, action.packetId);
 		add(event);
