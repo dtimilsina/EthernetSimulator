@@ -3,9 +3,9 @@ import java.util.*;
 public class Node {
 
     private final int MIN_PACKET_SIZE = 512;
-    private final int MAX_PACKET_SIZE = 2048;//12144;
+    private final int MAX_PACKET_SIZE = 2048; //12144;
 
-    private final double TRANSMISSION_RATE = 10000000.0;
+    private final double TRANSMISSION_RATE = 1.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
     public int openTransmissions = 0;

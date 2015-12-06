@@ -131,8 +131,8 @@ public class Network {
 
 	public static void main(String[] args) {
 		Map<Node, Integer> topology = new HashMap<Node, Integer>();
-		topology.put(new Node(1), 1);
-		topology.put(new Node(2), 4);
+		topology.put(new Node(1), 0);
+		topology.put(new Node(2), 1000);
 
 		Network net = new Network(topology);
 		
