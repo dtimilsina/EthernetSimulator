@@ -73,7 +73,7 @@ public class Node {
     }
 
     private Action handleWaitEnd() {
-        assert state == State.EAGER_TO_SEND : state.name();
+        assert state == State.WAITING_INTERPACKET_GAP : state.name();
 
         return sendIfIdle();
     }
