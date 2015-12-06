@@ -4,7 +4,35 @@
  */
 
 public class Statistics {
+
+	public int bitsSent;
+	public int successfulPackets = 0;
+	public int collisions = 0;
+	public int slotsWaited = 0;
+	public int packetsAborted = 0;
+
+	public void addSuccessfulPacket(int sentBits) {
+		successfulPackets++;
+		bitsSent += sentBits;
+	}
+
+	public void addCollision() {
+		collisions++;
+	}
+
+	public void addSlotsWaited(int slots) {
+		slotsWaited += slots;
+	}
+
+	public double computeDumbEfficiency(){
+		return (bitsSent * 1) / (slotsWaited * Event.SLOT_TIME);
+	}
+
+	public void addAbort(){
+		packetsAborted++;
+	}
+
 	public static void main(String[] args) {
-		
+
 	}
 }

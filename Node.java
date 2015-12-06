@@ -16,11 +16,12 @@ public class Node {
 
     public Statistics stats = new Statistics();
 
-    Random rand = new Random(10);
+    Random rand;
 
 
     public Node(int id) {
 		this.id = id;
+        rand = new Random(this.id);
     }
 
     public Action start() {
@@ -54,12 +55,17 @@ public class Node {
             case PREAMBLE_START: return null;
             case PREAMBLE_END:   return handlePreambleEnd();
             case PACKET_START:   return null;
-            case PACKET_END:     return null;
+            case PACKET_END:     return handleSuccessfulPacket();
             case JAMMING_START:  return null;
             case JAMMING_END:    return handleBackoff();
             case WAIT_END:       return sendIfIdle();
             default:             return null;
         }
+    }
+
+    private Action handleSuccessfulPacket() {
+        stats.addSuccessfulPacket(currentPacketSize);
+        return prepareNextPacket();
     }
 
     private Action handlePreambleEnd() {
@@ -74,26 +80,27 @@ public class Node {
 
     private Action handleBackoff() {
         assert timesBackedOff <= 16;
-
         if (timesBackedOff == 16) {
+            stats.addAbort();
             timesBackedOff = 0;
             return prepareNextPacket();
         }
 
         else {
+            int slots = nextBackoffSlots();
+
+            stats.addSlotsWaited(slots);
+
             transitionTo(State.WAITING_FOR_BACKOFF);
-            double duration = nextBackoffSlots() * Event.SLOT_TIME;
-            timesBackedOff++;            
+            double duration = slots * Event.SLOT_TIME;
+            timesBackedOff++;
             return new Action(ActionType.WAIT, duration, this);
         }
     }
 
-    private double nextBackoffSlots() {
-        if (timesBackedOff < 10) {
-            return Math.pow(2, timesBackedOff);
-        } else {
-            return 1024;
-        }
+    private int nextBackoffSlots() {
+        int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, timesBackedOff) : 1024;
+        return rand.nextInt(maxWait);
     }
 
     private Action sendIfIdle() {
@@ -160,19 +167,21 @@ public class Node {
 
     private boolean isInterrupt(Event e) {
     	assert e.source != this;
-    	return e.doesTransmit() && isTransmitting() && !transmittingPreamble();
-    }
-
-    public boolean transmittingPreamble() {
-    	return this.state == State.TRANSMITTING_PACKET_PREAMBLE;
+    	return e.doesTransmit() && 
+               isTransmitting() && 
+               !(state == State.TRANSMITTING_PACKET_PREAMBLE ||
+                 state == State.TRANSMITTING_JAMMING_SIGNAL);
     }
 
     public boolean isTransmitting() {
     	return this.state.isTransmittingState();
     }
 
-    public Action handleInterrupt() {
+    public Action handleInterrupt() {        
         transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
+
+        stats.addCollision();
+
         return new Action(ActionType.SEND_JAMMING, Event.JAMMING_TIME, this);
     }
 

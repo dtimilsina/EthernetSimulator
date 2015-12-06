@@ -19,15 +19,16 @@ public class Network {
 		return topology.keySet();
 	}
 
-	public void simulate() {
+	public void simulate(int n) {
 		init();
 
-		while (!eventQueue.empty()) {
-			System.out.format("Network: \n%s\n", this);
+		int i = 0;
+		while (!eventQueue.empty() && i++ < n) {
+			//System.out.format("Network: \n%s\n", this);
 			Event event = eventQueue.next();
 			currentTime = event.time;
 
-			System.out.format("Next event: %s\n", event);
+			//System.out.format("Next event: %s\n\n", event);
 
 			Action action = event.dest.react(event);
 
@@ -128,15 +129,27 @@ public class Network {
 		return s;
 	}
 
+	public void printStats() {
+		for (Node node : getMachines()) {
+			System.out.format("id: %d\n", node.id);
+			System.out.format("  succ: %d  coll: %d aborted %d\n", node.stats.successfulPackets, node.stats.collisions, node.stats.packetsAborted);
+			System.out.format("  Dumb ass efficiency: %f\n",node.stats.computeDumbEfficiency());
+		}
+	}
+
 
 	public static void main(String[] args) {
 		Map<Node, Integer> topology = new HashMap<Node, Integer>();
 		topology.put(new Node(1), 0);
 		topology.put(new Node(2), 1000);
+		topology.put(new Node(3), 250);
+		topology.put(new Node(4), 500);
+		topology.put(new Node(5), 750);
 
 		Network net = new Network(topology);
-		
-		net.simulate();
 
+		net.simulate(Integer.parseInt(args[0]));
+
+		net.printStats();
 	}
 }
