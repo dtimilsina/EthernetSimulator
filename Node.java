@@ -3,7 +3,7 @@ import java.util.*;
 public class Node {
 
     private final int MIN_PACKET_SIZE = 512;
-    private final int MAX_PACKET_SIZE = 2048; //12144;
+    private final int MAX_PACKET_SIZE = 2048; // 12144;
 
     private final double TRANSMISSION_RATE = 1.0;
 	public int id;
@@ -52,17 +52,52 @@ public class Node {
     private Action nextActionInSequence(Event e) {
         assert own(e);
 
+        // make sure e is acceptable given our current state
+        //assert isViable(e) : "Got " + e + " when state " + state.name();
+
         switch (e.eventType) {
-            case PACKET_READY:   return handlePacketReady();
-            case PREAMBLE_START: return null;
-            case PREAMBLE_END:   return handlePreambleEnd();
-            case PACKET_START:   return null;
-            case PACKET_END:     return handlePacketEnd();
-            case JAMMING_START:  return null;
-            case JAMMING_END:    return handleBackoff();
-            case WAIT_END:       return handleWaitEnd();
-            case BACKOFF_END:    return handleBackoffEnd();
-            default:             return null;
+            case PACKET_READY:   
+                return handlePacketReady();
+            case PREAMBLE_START: 
+                transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+                return null;
+            case PREAMBLE_END:   
+                return handlePreambleEnd();
+            case PACKET_START: 
+                transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
+                return null;
+            case PACKET_END:     
+                return handlePacketEnd();
+            case JAMMING_START:
+                transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
+                return null;
+            case JAMMING_END:    
+                return handleBackoff();
+            case WAIT_END:       
+                return handleWaitEnd();
+            case BACKOFF_END:    
+                return handleBackoffEnd();
+            default:
+                assert false : "Unknown event type " + e;
+                return null;
+        }
+    }
+
+    private boolean isViable(Event e) {
+        switch (e.eventType) {
+            case PACKET_READY:
+            case PREAMBLE_START: return state == State.EAGER_TO_SEND || 
+                                        state == State.WAITING_FOR_BACKOFF ||
+                                        state == State.PREPARING_NEXT_PACKET;
+            case PREAMBLE_END:   return state == State.TRANSMITTING_PACKET_PREAMBLE;
+            case PACKET_START:   return state == State.TRANSMITTING_PACKET_PREAMBLE;
+            case PACKET_END:     return state == State.TRANSMITTING_PACKET_CONTENTS;
+            case JAMMING_START:  return state == State.TRANSMITTING_PACKET_CONTENTS ||
+                                        state == State.TRANSMITTING_PACKET_PREAMBLE;
+            case JAMMING_END:    return state == State.TRANSMITTING_JAMMING_SIGNAL;
+            case BACKOFF_END:    return state == State.WAITING_FOR_BACKOFF;
+            case WAIT_END:       return state == State.WAITING_INTERPACKET_GAP;
+            default:             return false;
         }
     }
 
@@ -88,6 +123,7 @@ public class Node {
         assert state == State.TRANSMITTING_PACKET_CONTENTS : state.name();
 
         stats.addSuccessfulPacket(currentPacketSize);
+
         return prepareNextPacket();
     }
 
@@ -95,7 +131,7 @@ public class Node {
         assert state == State.TRANSMITTING_PACKET_PREAMBLE : state.name();
 
         if (isLineIdle()) {
-            transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
+            //transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
             double transmissionTime = currentPacketSize / TRANSMISSION_RATE;
             return new Action(ActionType.SEND_PACKET, transmissionTime, this);
         } else {
@@ -135,7 +171,7 @@ public class Node {
         assert !state.isTransmittingState() : state.name();
 
         if (isLineIdle()) {
-            transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+            //transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
             return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this);
         }
 
@@ -210,7 +246,7 @@ public class Node {
     }
 
     public Action handleInterrupt() {        
-        transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
+        //transitionTo(State.TRANSMITTING_JAMMING_SIGNAL);
 
         stats.addCollision();
 
