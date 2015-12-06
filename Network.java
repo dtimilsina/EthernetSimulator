@@ -137,14 +137,25 @@ public class Network {
 		}
 	}
 
+	public static Map<Node, Integer> generateTopology(int numNodes) {
+		Map<Node, Integer> topology = new HashMap<Node, Integer>();
+
+		for (int n = 0; n < numNodes; n++) {
+			int pos = 1000*(n % 4) + 25*(n / 4);
+			topology.put(new Node(n), pos);
+		}
+
+		return topology;
+	}
 
 	public static void main(String[] args) {
-		Map<Node, Integer> topology = new HashMap<Node, Integer>();
-		topology.put(new Node(1), 0);
-		topology.put(new Node(2), 1000);
-		topology.put(new Node(3), 250);
-		topology.put(new Node(4), 500);
-		topology.put(new Node(5), 750);
+		// Map<Node, Integer> topology = new HashMap<Node, Integer>();
+		// topology.put(new Node(1), 0);
+		// topology.put(new Node(2), 1000);
+		// topology.put(new Node(3), 250);
+		// topology.put(new Node(4), 500);
+		// topology.put(new Node(5), 750);
+		Map<Node, Integer> topology = Network.generateTopology(24);
 
 		Network net = new Network(topology);
 
