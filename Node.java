@@ -2,16 +2,19 @@ import java.util.*;
 
 public class Node {
 
-    private final int MIN_PACKET_SIZE = 512;
-    private final int MAX_PACKET_SIZE = 2048; // 12144;
+    public static int MIN_PACKET_SIZE = 512;
+    public static int MAX_PACKET_SIZE = 2048; // 12144;
 
-    private final double TRANSMISSION_RATE = 1.0;
+    public final double TRANSMISSION_RATE = 1.0;
 	public int id;
 	public State state = State.UNINITIALIZED;
 
+    private final int HISTORY_SIZE = 20;
+    public LinkedList<EventAction> history = new LinkedList<EventAction>();
+
     // this should just be a set. keeping it like this for now so that
     // we can also llook at the packet id 
-    private Map<Node, Integer> openTransmissions = new HashMap<Node, Integer>();
+    private Map<Node, Event> openTransmissions = new HashMap<Node, Event>();
 
     private int currentPacketSize;
     public int packetAttempt = 0;
@@ -45,7 +48,14 @@ public class Node {
     public Action react(Event e) {
         assert e.dest == this;
 
-        return own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
+        Action reaction = own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
+
+        history.add(new EventAction(e, reaction));
+        if (history.size() > HISTORY_SIZE) {
+            history.removeFirst();
+        }
+
+        return reaction;
     }
 
     private boolean own(Event e) {
@@ -83,9 +93,10 @@ public class Node {
 
     private Action handleWaitEnd() {
         assert state == State.WAITING_INTERPACKET_GAP : state.name();
-            packetAttempt++;
-            transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
-            return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this, packetAttempt);
+
+        packetAttempt++;
+        transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+        return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this, packetAttempt);
         //return sendIfIdle();
     }
 
@@ -175,7 +186,7 @@ public class Node {
         assert e.eventType != EventType.PACKET_READY;
 
         if (e.eventType == EventType.PREAMBLE_START) {
-            openTransmission(e.source, e.packetId);
+            openTransmission(e);//e.source e.packetId
         }
 
         else if (e.eventType == EventType.PACKET_END ||
@@ -202,12 +213,31 @@ public class Node {
         return openTransmissions.keySet().size();
     }
 
-    private void openTransmission(Node source, int packetId) {
-        assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
+    private void openTransmission(Event e) { //Node source, int packetId) {
+        
+        Node source = e.source;
+        int packetId = e.packetId;
+
+        if (openTransmissions.containsKey(source)) {
+            System.out.println("DUP PACKET");
+            System.out.println("Event: " + e);
+            System.out.println("TMs: " + openTransmissions.get(e.source));
+            System.out.println("DUP SENDER: " + e.source);
+            System.out.println("\nDup sender History:\n-------\n");
+
+            for (EventAction ea : e.source.history) {
+                System.out.format("E: %s\nR: %s\n\n", ea.event, ea.action);
+            }
+            System.exit(1);
+        }
+
+        openTransmissions.put(source, e);
+
+        //assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
         //System.out.println("m" + id + " opening " + source.id);
 
-        openTransmissions.put(source, packetId);
+        //openTransmissions.put(source, packetId);
     }
 
     private void closeTransmission(Node source) {
@@ -221,8 +251,9 @@ public class Node {
 
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
-        return 4096;
-        //return rand.nextInt(MAX_PACKET_SIZE - MIN_PACKET_SIZE) + MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
+        return 12288;//Node.MAX_PACKET_SIZE;
+        //return 4096;
+        //return rand.nextInt(Node.MAX_PACKET_SIZE - Node.MIN_PACKET_SIZE) + Node.MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
     }
 
     private boolean isLineIdle() {

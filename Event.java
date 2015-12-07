@@ -35,7 +35,7 @@ public class Event implements Comparable<Event> {
     }
 
     public static double samplePacketReadyTime() {
-        return Event.PACKET_READY_TIME + rand.nextGaussian();
+        return Event.PACKET_READY_TIME;// + rand.nextGaussian();
     }
 
     public int compareTo(Event other) {

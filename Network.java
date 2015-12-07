@@ -217,6 +217,34 @@ public class Network {
 		return topology;
 	}
 
+	public double getPacketsPerSecond(){
+		int total_packets = 0;
+		for (Node node : getMachines()) {
+	    	total_packets += node.stats.successfulPackets; 
+		}
+		double total_seconds = currentTime / 10000000;
+		return total_packets / total_seconds;
+    }
+
+    public double getTransmissionDelay(){
+    	double time_delayed = 0.0;
+    	int total_packets = 0;
+    	for (Node node : getMachines()) {
+	    	time_delayed += node.stats.slotsWaited * Event.SLOT_TIME + 
+	    					(1) * (Event.PREAMBLE_TIME + 
+	    						   Node.MAX_PACKET_SIZE + 
+	    						   Event.INTERPACKET_GAP) +
+	    					(node.stats.collisions) * (Event.PREAMBLE_TIME + 
+	    												   Event.INTERPACKET_GAP + 
+	    												   Node.MAX_PACKET_SIZE /2 + 
+	    												   Event.JAMMING_TIME);
+	    	total_packets += node.stats.successfulPackets;
+		}
+		time_delayed = time_delayed / 512 * 51.6 / 1000;
+    	//return (time_delayed / total_packets);
+		return currentTime * getMachines().size() / total_packets / 512 * 51.6 / 1000;
+    }      
+
 	public static void main(String[] args) {
 		// Map<Node, Integer> topology = new HashMap<Node, Integer>();
 		// topology.put(new Node(1), 0);
@@ -229,13 +257,34 @@ public class Network {
 			Debug.threshold = Integer.parseInt(args[1]);
 		}
 
-		Map<Node, Integer> topology = Network.generateTopology(12);
+		// Map<Node, Integer> topology = Network.generateTopology(12);
 
-		Network net = new Network(topology);
+		// Network net = new Network(topology);
 
-		net.simulate(Integer.parseInt(args[0]));
+		// net.simulate(Integer.parseInt(args[0]));
 
-		net.printStats();
-		System.out.println("DONE");
+		// net.printStats();
+		// System.out.println("DONE");
+		/* Test 3.5 */
+		int iterations = 1000000;
+		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
+		System.out.println("Hosts,Bytes,PacketsPerSecond");
+
+		for (int nodes = 0; nodes < 24; nodes++){
+            //int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
+            int[] bytes = {1024};
+            for(int byteCount : bytes){
+            	Node.MAX_PACKET_SIZE = byteCount * 8;
+                Map<Node, Integer> topology = Network.generateTopology(nodes);
+                Network net = new Network(topology);                
+                
+                //System.out.println("Bytes: " + byteCount);
+                //System.out.println("MAX_PACKET " + Node.MAX_PACKET_SIZE);
+                
+                net.simulate(iterations);
+                //System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+            }
+		}
+		/* end devin test */
 	}
 }
