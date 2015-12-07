@@ -109,8 +109,10 @@ public class Node {
 
     private Action handleWaitEnd() {
         assert state == State.WAITING_INTERPACKET_GAP : state.name();
-
-        return sendIfIdle();
+            packetAttempt++;
+            transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+            return new Action(ActionType.SEND_PREAMBLE, Event.PREAMBLE_TIME, this, packetAttempt);
+        //return sendIfIdle();
     }
 
     private Action handleBackoffEnd() {
