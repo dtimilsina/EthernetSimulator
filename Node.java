@@ -14,7 +14,6 @@ public class Node {
     private Map<Node, Integer> openTransmissions = new HashMap<Node, Integer>();
 
     private int currentPacketSize;
-    //public int currentPacketId = -1;
     public int packetAttempt = 0;
 
     private int timesBackedOff = 0;
@@ -23,7 +22,6 @@ public class Node {
 
     Random rand;
 
-    //int xxx = 0;
 
     public Node(int id) {
 		this.id = id;
@@ -37,15 +35,9 @@ public class Node {
     }
 
     private Action prepareNextPacket() {
-        // if (xxx++ > 0) {
-        //     System.out.println("called " + xxx + " many times");
-        //     System.exit(1);
-        // }
         transitionTo(State.PREPARING_NEXT_PACKET);
         timesBackedOff = 0;
         currentPacketSize = nextPacketSize();
-        //currentPacketId++;
-        //packetAttempt++;
         double duration = Event.samplePacketReadyTime();
         return new Action(ActionType.PREPARE_PACKET, duration, this, packetAttempt);
     }
@@ -80,24 +72,6 @@ public class Node {
             default:
                 assert false : "Unknown event type " + e;
                 return null;
-        }
-    }
-
-    private boolean isViable(Event e) {
-        switch (e.eventType) {
-            case PACKET_READY:
-            case PREAMBLE_START: return state == State.EAGER_TO_SEND || 
-                                        state == State.WAITING_FOR_BACKOFF ||
-                                        state == State.PREPARING_NEXT_PACKET;
-            case PREAMBLE_END:   return state == State.TRANSMITTING_PACKET_PREAMBLE;
-            case PACKET_START:   return state == State.TRANSMITTING_PACKET_PREAMBLE;
-            case PACKET_END:     return state == State.TRANSMITTING_PACKET_CONTENTS;
-            case JAMMING_START:  return state == State.TRANSMITTING_PACKET_CONTENTS ||
-                                        state == State.TRANSMITTING_PACKET_PREAMBLE;
-            case JAMMING_END:    return state == State.TRANSMITTING_JAMMING_SIGNAL;
-            case BACKOFF_END:    return state == State.WAITING_FOR_BACKOFF;
-            case WAIT_END:       return state == State.WAITING_INTERPACKET_GAP;
-            default:             return false;
         }
     }
 
@@ -247,7 +221,8 @@ public class Node {
 
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
-        return rand.nextInt(MAX_PACKET_SIZE - MIN_PACKET_SIZE) + MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
+        return 4096;
+        //return rand.nextInt(MAX_PACKET_SIZE - MIN_PACKET_SIZE) + MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
     }
 
     private boolean isLineIdle() {

@@ -229,7 +229,7 @@ public class Network {
 			Debug.threshold = Integer.parseInt(args[1]);
 		}
 
-		Map<Node, Integer> topology = Network.generateTopology(24);
+		Map<Node, Integer> topology = Network.generateTopology(12);
 
 		Network net = new Network(topology);
 
