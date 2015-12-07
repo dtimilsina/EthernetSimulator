@@ -106,7 +106,11 @@ public class Node {
         //System.out.println("----\n" + id + " Backoff end");
         //System.out.println("openconn " + openTransmissions);
 
-        return sendIfIdle();
+        // NEW: wat interpacket gap after backoff too?
+        transitionTo(State.WAITING_INTERPACKET_GAP);
+        return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this, packetAttempt);
+
+        //return sendIfIdle();
     }
 
     private Action handlePacketEnd() {
@@ -218,22 +222,24 @@ public class Node {
         Node source = e.source;
         int packetId = e.packetId;
 
-        if (openTransmissions.containsKey(source)) {
-            System.out.println("DUP PACKET");
-            System.out.println("Event: " + e);
-            System.out.println("TMs: " + openTransmissions.get(e.source));
-            System.out.println("DUP SENDER: " + e.source);
-            System.out.println("\nDup sender History:\n-------\n");
+        // if (openTransmissions.containsKey(source)) {
+        //     System.out.println("DUP PACKET");
+        //     System.out.println("Event: " + e);
+        //     System.out.println("TMs: " + openTransmissions.get(e.source));
+        //     System.out.println("DUP SENDER: " + e.source);
+        //     System.out.println("\nDup sender History:\n-------\n");
 
-            for (EventAction ea : e.source.history) {
-                System.out.format("E: %s\nR: %s\n\n", ea.event, ea.action);
-            }
-            System.exit(1);
-        }
+        //     for (EventAction ea : e.source.history) {
+        //         System.out.format("E: %s\nR: %s\n\n", ea.event, ea.action);
+        //     }
+        //     System.exit(1);
+        // }
+
+        assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
         openTransmissions.put(source, e);
 
-        //assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
+        
 
         //System.out.println("m" + id + " opening " + source.id);
 

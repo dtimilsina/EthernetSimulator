@@ -271,8 +271,8 @@ public class Network {
 		System.out.println("Hosts,Bytes,PacketsPerSecond");
 
 		for (int nodes = 0; nodes < 24; nodes++){
-            //int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
-            int[] bytes = {1024};
+            int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
+            //int[] bytes = {1024};
             for(int byteCount : bytes){
             	Node.MAX_PACKET_SIZE = byteCount * 8;
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
