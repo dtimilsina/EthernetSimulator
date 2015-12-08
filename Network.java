@@ -253,26 +253,17 @@ public class Network {
 		// topology.put(new Node(4), 500);
 		// topology.put(new Node(5), 750);
 
-		if (args.length > 1) {
-			Debug.threshold = Integer.parseInt(args[1]);
-		}
+		int graphNumber = 0;
+    	if (args.length > 0){
+        	graphNumber = Integer.parseInt(args[0]);
+      	}
 
-		// Map<Node, Integer> topology = Network.generateTopology(12);
-
-		// Network net = new Network(topology);
-
-		// net.simulate(Integer.parseInt(args[0]));
-
-		// net.printStats();
-		// System.out.println("DONE");
-		/* Test 3.5 */
 		int iterations = 1000000;
 		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
 		System.out.println("Hosts,Bytes,PacketsPerSecond");
 
-		for (int nodes = 0; nodes < 24; nodes++){
+		for (int nodes = 1; nodes <= 24; nodes++){
             int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
-            //int[] bytes = {1024};
             for(int byteCount : bytes){
             	Node.MAX_PACKET_SIZE = byteCount * 8;
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
@@ -283,6 +274,20 @@ public class Network {
                 
                 net.simulate(iterations);
                 //System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+				switch(graphNumber){
+		        	case 3:
+		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Event.PREAMBLE_TIME))  / 1000000);
+		            	break;
+		        	case 5:
+		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+		            	break;
+		        	case 7:
+		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+		            	break;
+		        	default:
+		            	System.out.println("Help me!");
+		            	System.exit(0);
+		        }                
             }
 		}
 		/* end devin test */

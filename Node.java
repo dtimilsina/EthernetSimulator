@@ -107,10 +107,10 @@ public class Node {
         //System.out.println("openconn " + openTransmissions);
 
         // NEW: wat interpacket gap after backoff too?
-        transitionTo(State.WAITING_INTERPACKET_GAP);
-        return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this, packetAttempt);
+        //transitionTo(State.WAITING_INTERPACKET_GAP);
+        //return new Action(ActionType.WAIT, Event.INTERPACKET_GAP, this, packetAttempt);
 
-        //return sendIfIdle();
+        return sendIfIdle();
     }
 
     private Action handlePacketEnd() {
@@ -158,6 +158,9 @@ public class Node {
             transitionTo(State.WAITING_FOR_BACKOFF);
 
             double duration = slots * Event.SLOT_TIME;
+            if (duration < 1) {
+                duration = 0.00001;
+            }
             timesBackedOff++;
             return new Action(ActionType.BACKOFF, duration, this, packetAttempt);
         }
@@ -218,22 +221,21 @@ public class Node {
     }
 
     private void openTransmission(Event e) { //Node source, int packetId) {
-        
         Node source = e.source;
-        int packetId = e.packetId;
+        int packetId = e.packetId;    
+        
 
-        // if (openTransmissions.containsKey(source)) {
-        //     System.out.println("DUP PACKET");
-        //     System.out.println("Event: " + e);
-        //     System.out.println("TMs: " + openTransmissions.get(e.source));
-        //     System.out.println("DUP SENDER: " + e.source);
-        //     System.out.println("\nDup sender History:\n-------\n");
+        if (openTransmissions.containsKey(source)) {
+            System.out.println("DUP PACKET");
+            System.out.println("Event: " + e);
+            System.out.println("TMs: " + openTransmissions.get(e.source));
+            System.out.println("DUP SENDER: " + e.source);
+            System.out.println("\nDup sender History:\n-------\n");
 
-        //     for (EventAction ea : e.source.history) {
-        //         System.out.format("E: %s\nR: %s\n\n", ea.event, ea.action);
-        //     }
-        //     System.exit(1);
-        // }
+            for (EventAction ea : e.source.history) {
+                System.out.format("E: %s\nR: %s\n\n", ea.event, ea.action);
+            }
+        }
 
         assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
@@ -257,7 +259,7 @@ public class Node {
 
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
-        return 12288;//Node.MAX_PACKET_SIZE;
+        return Node.MAX_PACKET_SIZE;
         //return 4096;
         //return rand.nextInt(Node.MAX_PACKET_SIZE - Node.MIN_PACKET_SIZE) + Node.MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
     }

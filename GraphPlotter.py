@@ -4,6 +4,7 @@ import numpy as np
 import csv
 
 data = np.genfromtxt(sys.argv[1],skiprows=1,delimiter=',')
+graph_number= int(sys.argv[2])
 
 x=data[:,0]
 y=data[:,1]
@@ -25,29 +26,24 @@ for bytesVal in y:
     plt.plot(hosts,vals,linewidth=1)
     print "____________"
 
-'''
-#Figure 3.3
-plt.ylim(7,10)
-plt.title('Total Bit Rate')
-plt.xlabel('Number of Hosts')
-plt.ylabel('Ethernet Utilization in MBits\Sec')
-plt.savefig('fig3-3.png',dpi=100)
 
-'''
+if graph_number == 3:
+    plt.ylim(7,10)
+    plt.title('Total Bit Rate')
+    plt.xlabel('Number of Hosts')
+    plt.ylabel('Ethernet Utilization in MBits\Sec')
+    plt.savefig('fig3-3.png',dpi=100)
 
-#Figure 3.5
-plt.title('Total Packet Rate')
-plt.xlabel('Number of Hosts')
-plt.ylabel('Ethernet Utilization in Packets\Sec')
-plt.savefig('fig3-5.png',dpi=100)
+elif graph_number == 5:
+    plt.title('Total Packet Rate')
+    plt.xlabel('Number of Hosts')
+    plt.ylabel('Ethernet Utilization in Packets\Sec')
+    plt.savefig('fig3-5.png',dpi=100)
 
-'''
+elif graph_number == 7:
+    plt.title('Average Tranmission Delay')
+    plt.xlabel('Number of Hosts')
+    plt.ylabel('Average Tranmission Delay in Milliseconds')
+    plt.savefig('fig3-7.png',dpi=100)
 
-#Figure 3.7
-plt.title('Average Tranmission Delay')
-plt.xlabel('Number of Hosts')
-plt.ylabel('Average Tranmission Delay in Milliseconds')
-plt.savefig('fig3-7.png',dpi=100)
-'''
 plt.clf()
-
