@@ -276,7 +276,7 @@ public class Network {
                 //System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
 				switch(graphNumber){
 		        	case 3:
-		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Event.PREAMBLE_TIME))  / 1000000);
+		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 +Event.PREAMBLE_TIME + Event.INTERPACKET_GAP))  / 1000000);
 		            	break;
 		        	case 5:
 		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
