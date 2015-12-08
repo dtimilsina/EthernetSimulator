@@ -5,9 +5,9 @@ import java.io.IOException;
 public class Network {
 
 	private Map<Node, Integer> topology;
-	
+
 	private EventQueue eventQueue = new EventQueue();
-	
+
 	private Statistics stats = new Statistics();
 
 	private double currentTime = 0.0;
@@ -49,11 +49,11 @@ public class Network {
 
 			if (action != null) {
 				switch (action.actionType) {
-					case PREPARE_PACKET: 
-						packetReadyEvent(action); 
+					case PREPARE_PACKET:
+						packetReadyEvent(action);
 						break;
 					case WAIT:
-						waitEvent(action); 
+						waitEvent(action);
 						break;
 					case BACKOFF:
 						backoffEvent(action);
@@ -82,11 +82,11 @@ public class Network {
 	}
 
 	private boolean isPacketCancelled(Event event) {
-		return event.eventType == EventType.PACKET_END && 
+		return event.eventType == EventType.PACKET_END &&
 			cancelledPackets.get(event.source).contains(event.packetId);
 	}
 
-	/* Mark as cancelled any event that is associated with 
+	/* Mark as cancelled any event that is associated with
 	   this packetId from this source */
 	private void cancelPackets(Action action) {
 		cancelledPackets.get(action.source).add(action.packetId);
@@ -94,9 +94,9 @@ public class Network {
 
 	private void packetReadyEvent(Action action) {
 		double time = currentTime + action.duration;
-		Event event = new Event(EventType.PACKET_READY, 
-								action.source, 
-								action.source, 
+		Event event = new Event(EventType.PACKET_READY,
+								action.source,
+								action.source,
 								time,
 								action.packetId);
 		add(event);
@@ -133,13 +133,13 @@ public class Network {
 
 			Event start = new Event(startType,
 									action.source,
-									dest, 
+									dest,
 									startTime,
 									action.packetId);
 
-			Event end = new Event(endType, 
-								  action.source, 
-								  dest, 
+			Event end = new Event(endType,
+								  action.source,
+								  dest,
 								  startTime + action.duration,
 								  action.packetId);
 
@@ -170,7 +170,7 @@ public class Network {
         double sourcePos = (double) topology.get(source);
         double destPos   = (double) topology.get(dest);
 
-        return Math.abs(sourcePos - destPos) / Constants.PROPAGATION_SPEED;		
+        return Math.abs(sourcePos - destPos) / Constants.PROPAGATION_SPEED;
 	}
 
 	public String toString() {
@@ -205,7 +205,7 @@ public class Network {
 		int total_packets = 0;
 
 		for (Node node : getMachines()) {
-	    	total_packets += node.stats.successfulPackets; 
+	    	total_packets += node.stats.successfulPackets;
 		}
 
 		double total_seconds = currentTime / 10000000;
@@ -219,9 +219,10 @@ public class Network {
     	for (Node node : getMachines()) {
 	    	total_packets += node.stats.successfulPackets;
 		}
-
-		return currentTime * getMachines().size() / total_packets / 512 * 51.6 / 1000;
-    }      
+		double bitTimePerPacket = currentTime * getMachines().size() / total_packets;
+		double transmissionDelay = bitTimePerPacket / 100000;
+		return transmissionDelay;
+    }
 
 	public static void main(String[] args) throws IOException {
 		int iterations = 1000000;
@@ -251,28 +252,13 @@ public class Network {
 
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
 
-                Network net = new Network(topology);                
-                
+                Network net = new Network(topology);
+
                 net.simulate(iterations);
 
                 write3_3.format("%d,%d,%f\n", nodes, byteCount, (net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
-
-				// switch (graphNumber) {
-		  //       	case 3:
-		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
-		  //           	break;
-		  //       	case 5:
-		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
-		  //           	break;
-		  //       	case 7:
-		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
-		  //           	break;
-		  //       	default:
-		  //           	System.out.println("Help me!");
-		  //           	System.exit(0);
-		  //       }
             }
 		}
 
