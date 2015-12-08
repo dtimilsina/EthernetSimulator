@@ -256,7 +256,12 @@ public class Network {
 
                 net.simulate(iterations);
 
-                write3_3.format("%d,%d,%f\n", nodes, byteCount, (net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
+                int bits = 8 * byteCount;
+                double used = bits + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP;
+                double mbits = used / Math.pow(10, 6);
+                double totalBitRate = net.getPacketsPerSecond() * mbits;
+
+                write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
             }
