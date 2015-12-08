@@ -1,0 +1,3 @@
+Run 
+
+```./net [iterations]```
