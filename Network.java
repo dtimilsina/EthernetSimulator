@@ -33,7 +33,6 @@ public class Network {
 		while (!eventQueue.empty() && i++ < n) {
 	       	Event event = eventQueue.next();
 
-			// Filter END events for cancelled packets
 			if (isPacketCancelled(event)) {
 				continue;
 			}
@@ -81,11 +80,8 @@ public class Network {
 	}
 
 	private boolean isPacketCancelled(Event event) {
-		// preamble_end and jamming_start could become reordered
-		// just due to tiebreaker
-		return (event.eventType == EventType.PACKET_END ||
-				event.eventType == EventType.PREAMBLE_END) 
-			&& cancelledPackets.get(event.source).contains(event.packetId);
+		return event.eventType == EventType.PACKET_END && 
+			cancelledPackets.get(event.source).contains(event.packetId);
 	}
 
 	/* Mark as cancelled any event that is associated with 
@@ -172,7 +168,7 @@ public class Network {
         double sourcePos = (double) topology.get(source);
         double destPos   = (double) topology.get(dest);
 
-        return Math.abs(sourcePos - destPos) / Event.PROPAGATION_SPEED;		
+        return Math.abs(sourcePos - destPos) / Constants.PROPAGATION_SPEED;		
 	}
 
 	public String toString() {
@@ -216,22 +212,11 @@ public class Network {
     }
 
     public double getTransmissionDelay(){
-    	double time_delayed = 0.0;
     	int total_packets = 0;
 
     	for (Node node : getMachines()) {
-	    	time_delayed += node.stats.slotsWaited * Event.SLOT_TIME + 
-	    					(1) * (Event.PREAMBLE_TIME + 
-	    						   Node.MAX_PACKET_SIZE + 
-	    						   Event.INTERPACKET_GAP) +
-	    					(node.stats.collisions) * (Event.PREAMBLE_TIME + 
-	    												   Event.INTERPACKET_GAP + 
-	    												   Node.MAX_PACKET_SIZE /2 + 
-	    												   Event.JAMMING_TIME);
 	    	total_packets += node.stats.successfulPackets;
 		}
-
-		time_delayed = time_delayed / 512 * 51.6 / 1000;
 
 		return currentTime * getMachines().size() / total_packets / 512 * 51.6 / 1000;
     }      
@@ -249,15 +234,14 @@ public class Network {
 		for (int nodes = 1; nodes <= 24; nodes++){
             int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
             for(int byteCount : bytes){
-            	Node.MAX_PACKET_SIZE = byteCount * 8;
+            	Constants.MAX_PACKET_SIZE = byteCount * 8;
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
                 Network net = new Network(topology);                
                 
                 net.simulate(iterations);
-                
 				switch(graphNumber){
 		        	case 3:
-		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 +Event.PREAMBLE_TIME + Event.INTERPACKET_GAP))  / 1000000);
+		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
 		            	break;
 		        	case 5:
 		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
@@ -268,9 +252,8 @@ public class Network {
 		        	default:
 		            	System.out.println("Help me!");
 		            	System.exit(0);
-		        }                
+		        }
             }
 		}
-		/* end devin test */
 	}
 }

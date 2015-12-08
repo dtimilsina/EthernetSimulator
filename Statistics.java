@@ -25,7 +25,7 @@ public class Statistics {
 	}
 
 	public double computeDumbEfficiency(){
-		return (bitsSent * 1) / (slotsWaited * Event.SLOT_TIME);
+		return (bitsSent * 1) / (slotsWaited * Constants.SLOT_TIME);
 	}
 
 	public void addAbort(){
