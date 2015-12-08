@@ -122,7 +122,6 @@ public class Network {
 					endType = EventType.JAMMING_END;
 					break;
 				default:
-					System.out.println("FUCK");
 					System.out.println(action.actionType.name());
 					System.exit(1);
 			}
