@@ -31,29 +31,21 @@ public class Network {
 
 		int i = 0;
 		while (!eventQueue.empty() && i++ < n) {
-			//Debug.print("----------", 1);
-
 	       	Event event = eventQueue.next();
 
 			// Filter END events for cancelled packets
 			if (isPacketCancelled(event)) {
-				//System.out.println("Skipping cancelled " + event);
 				continue;
 			}
 
 			if (event.dest == event.source && event.isStartEvent()) {
-				//System.out.println("Skipping useless " + event);
 				continue;
 			}
 
 			currentTime = event.time;
 
-			//System.out.format("Network: \n%s\n", this);
-			//System.out.format("Next event: %s\n\n", event);
-
 			Action action = event.dest.react(event);
 
-			// Might not do anything if, say, event is PacketReady
 			if (action != null) {
 				switch (action.actionType) {
 					case PREPARE_PACKET: 
@@ -73,11 +65,6 @@ public class Network {
 						spawnEvents(action);
 				}
 			}
-
-			else {
-				//System.out.println("NULL REACTION TO:");
-				//System.out.println("  event: " + event);
-			}			
 		}
 	}
 
@@ -171,7 +158,6 @@ public class Network {
 	}
 
 	private void backoffEvent(Action action) {
-		//System.out.println(action.source.id + " backingoff " + action.duration);
 		double time = currentTime + action.duration;
 		Event event = new Event(EventType.BACKOFF_END, action.source, action.source, time, action.packetId);
 		add(event);
@@ -219,16 +205,20 @@ public class Network {
 
 	public double getPacketsPerSecond(){
 		int total_packets = 0;
+
 		for (Node node : getMachines()) {
 	    	total_packets += node.stats.successfulPackets; 
 		}
+
 		double total_seconds = currentTime / 10000000;
+
 		return total_packets / total_seconds;
     }
 
     public double getTransmissionDelay(){
     	double time_delayed = 0.0;
     	int total_packets = 0;
+
     	for (Node node : getMachines()) {
 	    	time_delayed += node.stats.slotsWaited * Event.SLOT_TIME + 
 	    					(1) * (Event.PREAMBLE_TIME + 
@@ -240,19 +230,13 @@ public class Network {
 	    												   Event.JAMMING_TIME);
 	    	total_packets += node.stats.successfulPackets;
 		}
+
 		time_delayed = time_delayed / 512 * 51.6 / 1000;
-    	//return (time_delayed / total_packets);
+
 		return currentTime * getMachines().size() / total_packets / 512 * 51.6 / 1000;
     }      
 
 	public static void main(String[] args) {
-		// Map<Node, Integer> topology = new HashMap<Node, Integer>();
-		// topology.put(new Node(1), 0);
-		// topology.put(new Node(2), 1000);
-		// topology.put(new Node(3), 250);
-		// topology.put(new Node(4), 500);
-		// topology.put(new Node(5), 750);
-
 		int graphNumber = 0;
     	if (args.length > 0){
         	graphNumber = Integer.parseInt(args[0]);
@@ -269,11 +253,8 @@ public class Network {
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
                 Network net = new Network(topology);                
                 
-                //System.out.println("Bytes: " + byteCount);
-                //System.out.println("MAX_PACKET " + Node.MAX_PACKET_SIZE);
-                
                 net.simulate(iterations);
-                //System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+                
 				switch(graphNumber){
 		        	case 3:
 		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 +Event.PREAMBLE_TIME + Event.INTERPACKET_GAP))  / 1000000);

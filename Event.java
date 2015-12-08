@@ -1,13 +1,12 @@
 import java.util.*;
 
-public class Event /*implements Comparable<Event>*/ {
+public class Event {
 
-    // move these. maybe move things in terms of slot_times only?
     public static double SLOT_TIME = 512.0;
     public static double INTERPACKET_GAP = 96.0; // todo: check
     public static double PREAMBLE_TIME = 64.0;
     public static double JAMMING_TIME = 32.0;
-    public static double PACKET_READY_TIME = 1024.0;//SLOT_TIME / 2;
+    public static double PACKET_READY_TIME = 1024.0;
 
     // distance units / time unit
     public static double PROPAGATION_SPEED = 60.0; // 6*10^8 ft/s in ft/bittime
@@ -37,21 +36,6 @@ public class Event /*implements Comparable<Event>*/ {
     public static double samplePacketReadyTime() {
         return Event.PACKET_READY_TIME + rand.nextGaussian();
     }
-
-    // public int compareTo(Event other) {
-    //     int cmp = new Double(this.time).compareTo(new Double(other.time));
-    
-    //     if (cmp == 0) {
-    //         if (this.isStartEvent() && other.isEndEvent()) {
-    //             return 1;
-    //         } else if (this.isEndEvent() && other.isStartEvent()) {
-    //             return -1;
-    //         }
-    //     }
-
-    //     return cmp;
-    //     //return new Double(this.time).compareTo(new Double(other.time));//this.time >= other.time ? 0 : 1;
-    // }
 
     public boolean isStartEvent() {
         return this.eventType == EventType.PREAMBLE_START ||

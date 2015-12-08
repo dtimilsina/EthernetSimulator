@@ -143,24 +143,21 @@ public class Node {
         if (timesBackedOff == 16) {
             stats.addAbort();
             timesBackedOff = 0;
-
-            //System.out.println("handleBackoff()");
-            //System.exit(0);
             return prepareNextPacket();
         }
 
         else {
-            //System.out.println("Machine " + id + " backing off");
             int slots = nextBackoffSlots();
-
             stats.addSlotsWaited(slots);
 
             transitionTo(State.WAITING_FOR_BACKOFF);
+
 
             double duration = slots * Event.SLOT_TIME;
             if (duration < 1) {
                 duration = 0.00001;
             }
+
             timesBackedOff++;
             return new Action(ActionType.BACKOFF, duration, this, packetAttempt);
         }
@@ -169,7 +166,6 @@ public class Node {
     private int nextBackoffSlots() {
         int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : 1024;
         int slots = rand.nextInt(maxWait);
-        //System.out.println("Machine " + id + " waiting " + slots);
         return slots;
     }
 
@@ -193,7 +189,7 @@ public class Node {
         assert e.eventType != EventType.PACKET_READY;
 
         if (e.eventType == EventType.PREAMBLE_START) {
-            openTransmission(e);//e.source e.packetId
+            openTransmission(e);
         }
 
         else if (e.eventType == EventType.PACKET_END ||
@@ -202,7 +198,7 @@ public class Node {
         }
 
         if (isInterrupt(e)) {
-            return handleInterrupt(); //preamble,jamming,packet starts
+            return handleInterrupt();
         }
 
         // If line is idle, we'll wait interpacket gap
@@ -220,7 +216,7 @@ public class Node {
         return openTransmissions.keySet().size();
     }
 
-    private void openTransmission(Event e) { //Node source, int packetId) {
+    private void openTransmission(Event e) {
         Node source = e.source;
         int packetId = e.packetId;    
         
@@ -240,19 +236,12 @@ public class Node {
         assert !openTransmissions.containsKey(source) : "Received extra packet " + source.id + "->" + id;
 
         openTransmissions.put(source, e);
-
-        
-
-        //System.out.println("m" + id + " opening " + source.id);
-
-        //openTransmissions.put(source, packetId);
     }
 
     private void closeTransmission(Node source) {
         assert openTransmissions.containsKey(source);
 
         openTransmissions.remove(source);
-        //System.out.println("m" + id + " closing " + source.id);        
 
         assert !openTransmissions.containsKey(source);
     }
@@ -260,12 +249,10 @@ public class Node {
     /* this will allow for creating distributions of sizes and such */
     private int nextPacketSize() {
         return Node.MAX_PACKET_SIZE;
-        //return 4096;
-        //return rand.nextInt(Node.MAX_PACKET_SIZE - Node.MIN_PACKET_SIZE) + Node.MIN_PACKET_SIZE - (int) Event.PREAMBLE_TIME;
     }
 
     private boolean isLineIdle() {
-        return numberOpenTransmissions() == 0;// && !isTransmitting();
+        return numberOpenTransmissions() == 0;
     }
 
     private boolean isInterrupt(Event e) {
