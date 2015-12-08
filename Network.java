@@ -1,4 +1,6 @@
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 public class Network {
 
@@ -221,39 +223,61 @@ public class Network {
 		return currentTime * getMachines().size() / total_packets / 512 * 51.6 / 1000;
     }      
 
-	public static void main(String[] args) {
-		int graphNumber = 0;
-    	if (args.length > 0){
-        	graphNumber = Integer.parseInt(args[0]);
-      	}
-
+	public static void main(String[] args) throws IOException {
 		int iterations = 1000000;
+
+		if (args.length > 0) {
+			iterations = Integer.parseInt(args[0]);
+		}
+
+		System.out.format("Running %d iterations\n", iterations);
+
 		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
-		System.out.println("Hosts,Bytes,PacketsPerSecond");
+
+		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
+		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
+		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
+
+		write3_3.println("Hosts,Bytes,PacketsPerSecond");
+		write3_5.println("Hosts,Bytes,PacketsPerSecond");
+		write3_7.println("Hosts,Bytes,PacketsPerSecond");				
 
 		for (int nodes = 1; nodes <= 24; nodes++){
-            int[] bytes = {64,128,256,512,768,1024,1536,2048,3072,4000};
-            for(int byteCount : bytes){
+
+            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
+
+            for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
+
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
+
                 Network net = new Network(topology);                
                 
                 net.simulate(iterations);
-				switch(graphNumber){
-		        	case 3:
-		            	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
-		            	break;
-		        	case 5:
-		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
-		            	break;
-		        	case 7:
-		            	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
-		            	break;
-		        	default:
-		            	System.out.println("Help me!");
-		            	System.exit(0);
-		        }
+
+                write3_3.format("%d,%d,%f\n", nodes, byteCount, (net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
+                write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+                write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+
+				// switch (graphNumber) {
+		  //       	case 3:
+		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,(net.getPacketsPerSecond() * (byteCount * 8 + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP))  / 1000000);
+		  //           	break;
+		  //       	case 5:
+		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
+		  //           	break;
+		  //       	case 7:
+		  //           	System.out.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+		  //           	break;
+		  //       	default:
+		  //           	System.out.println("Help me!");
+		  //           	System.exit(0);
+		  //       }
             }
 		}
+
+		write3_3.close();
+		write3_5.close();
+		write3_7.close();
 	}
 }

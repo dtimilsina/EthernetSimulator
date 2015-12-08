@@ -11,6 +11,9 @@ public class Node {
     private Set<Node> openTransmissions = new HashSet<Node>();
 
     private int currentPacketSize;
+
+    // This is needed for the handling of "dead" packet events which
+    // arrive after a packet has been canceled
     public int packetAttempt = 0;
 
     private int timesBackedOff = 0;
@@ -88,7 +91,9 @@ public class Node {
         assert state == State.WAITING_INTERPACKET_GAP : state.name();
 
         packetAttempt++;
+
         transitionTo(State.TRANSMITTING_PACKET_PREAMBLE);
+
         return new Action(ActionType.SEND_PREAMBLE, Constants.PREAMBLE_TIME, this, packetAttempt);
     }
 
@@ -111,7 +116,9 @@ public class Node {
 
         if (isLineIdle()) {
             transitionTo(State.TRANSMITTING_PACKET_CONTENTS);
+            
             double transmissionTime = currentPacketSize / Constants.TRANSMISSION_RATE;
+
             return new Action(ActionType.SEND_PACKET, transmissionTime, this, packetAttempt);
         } 
 
@@ -139,6 +146,9 @@ public class Node {
 
             double duration = slots * Constants.SLOT_TIME;
             if (duration < 1) {
+                // need to fix this with stable sort but buggy. causes 
+                // reorderings of ties that usurp "previous" events
+                // though this is physically likely more accurate
                 duration = 0.00001;
             }
 
