@@ -220,7 +220,7 @@ public class Network {
 	    	total_packets += node.stats.successfulPackets;
 		}
 		double bitTimePerPacket = currentTime * getMachines().size() / total_packets;
-		double transmissionDelay = bitTimePerPacket / 100000;
+		double transmissionDelay = bitTimePerPacket / 10000;
 		return transmissionDelay;
     }
 
@@ -241,7 +241,7 @@ public class Network {
 
 		write3_3.println("Hosts,Bytes,PacketsPerSecond");
 		write3_5.println("Hosts,Bytes,PacketsPerSecond");
-		write3_7.println("Hosts,Bytes,PacketsPerSecond");				
+		write3_7.println("Hosts,Bytes,PacketsPerSecond");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
