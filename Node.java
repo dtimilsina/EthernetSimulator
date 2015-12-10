@@ -29,7 +29,7 @@ public class Node {
     private int ntrans = 0;
     private double sumIdleSlots = 0.0;
     private int contentionWindow = 0;
-    private double nIdleAvg = 0.0;
+    public double nIdleAvg = 0.0;
 
     public Statistics stats = new Statistics();
 
@@ -219,12 +219,15 @@ public class Node {
         //int slots = rand.nextInt(maxWait);
         if (backoffAlgorithm == Node.EXPONENTIAL_BACKOFF) {
             if (timesBackedOff < 10) {
-                int maxWait = (int) Math.pow(2, 1 + timesBackedOff)
+                int maxWait = (int) Math.pow(2, 1 + timesBackedOff);
                 return rand.nextInt(maxWait);
+            } else {
+                return Constants.MAX_BACKOFF_SLOTS;
             }
         } 
 
         else if (backoffAlgorithm == Node.IDLE_SENSE) {
+            if (contentionWindow == 0) return 0;
             return rand.nextInt(contentionWindow); // slots;
         } 
         

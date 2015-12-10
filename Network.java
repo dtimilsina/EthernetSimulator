@@ -189,18 +189,18 @@ public class Network {
 		}
 	}
 
-	public static Map<Node, Integer> generateTopology(int numNodes) {
+	public static Map<Node, Integer> generateTopology(int numNodes, int backoffAlgorithm) {
 		Map<Node, Integer> topology = new HashMap<Node, Integer>();
 
 		for (int n = 0; n < numNodes; n++) {
 			int pos = 1000*(n % 4) + 25*(n / 4);
-			topology.put(new Node(n), pos);
+			topology.put(new Node(n, backoffAlgorithm), pos);
 		}
 
 		return topology;
 	}
 
-	public double getPacketsPerSecond(){
+	public double getPacketsPerSecond() {
 		int total_packets = 0;
 
 		for (Node node : getMachines()) {
@@ -244,15 +244,18 @@ public class Network {
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
-            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
+            //int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
+            int[] bytes = { 200 };
 
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
 
                 Network net = new Network(topology);
+
 				Constants.MAX_TRANS = Math.max(nodes, 5);
+				Constants.nIdleTarget = Constants.nIdleAvgOpt[nodes-1];
 
                 net.simulate(iterations);
 
@@ -264,6 +267,11 @@ public class Network {
                 write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+
+                System.out.println("For " + nodes);
+				for (Node node : net.getMachines()) {
+					System.out.println(node.nIdleAvg);
+				}
             }
 		}
 
