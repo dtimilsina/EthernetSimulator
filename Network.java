@@ -232,11 +232,12 @@ public class Network {
 
     	for (Node node : getMachines()) {
 	    	packets = node.stats.successfulPackets;
-	    	bitTimePerPacket = currentTime  / packets;
+	    	//bitTimePerPacket = currentTime  / (1.0 * packets);
+	    	bitTimePerPacket = (1.0* packets)/currentTime;	
 	    	top += bitTimePerPacket;
-	    	bot += (bitTimePerPacket * bitTimePerPackets);
+	    	bot += (bitTimePerPacket * bitTimePerPacket);
 		}
-		top *= top;
+		top *= top * 1.0;
 		return top / (bot * getMachines().size());
     }
 
@@ -254,10 +255,13 @@ public class Network {
 		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
 		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
 		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
+		PrintWriter fairness = new PrintWriter("fairness.csv", "UTF-8");
+
 
 		write3_3.println("Hosts,Bytes,PacketsPerSecond");
 		write3_5.println("Hosts,Bytes,PacketsPerSecond");
 		write3_7.println("Hosts,Bytes,PacketsPerSecond");
+		fairness.println("Hosts,Bytes,Fairness");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
@@ -266,7 +270,7 @@ public class Network {
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
 
                 Network net = new Network(topology);
 
@@ -283,16 +287,21 @@ public class Network {
                 write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+                fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
+
 
                 System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
+                /*
 				for (Node node : net.getMachines()) {
 					System.out.println("\t" + node.nIdleAvg);
-				}
+				}*/
+				System.out.println(net.getJains());
             }
 		}
 
 		write3_3.close();
 		write3_5.close();
 		write3_7.close();
+		fairness.close();
 	}
 }
