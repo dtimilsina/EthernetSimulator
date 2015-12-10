@@ -202,7 +202,7 @@ public class Network {
 			}
 
 			else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-				// set cw
+				node.optimalCW = (int) (2.0 / Constants.PE_OPT[numNodes-1]);
 			}
 		}
 
@@ -268,7 +268,7 @@ public class Network {
 		}
 
 		//System.out.format("Running %d iterations\n", iterations);
-		
+
 		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
 		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
 		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
@@ -288,7 +288,7 @@ public class Network {
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
 
                 Network net = new Network(topology);
 

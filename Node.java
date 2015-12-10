@@ -38,6 +38,9 @@ public class Node {
     public double nIdleAvg = 0.0;
     private int maxtrans = Constants.MAX_TRANS;
 
+    // Optimal idle sense
+    public int optimalCW = 0;
+
     // This isn't actually used by the node itself for clocking
     public double currentTime = 0.0;
 
@@ -259,8 +262,7 @@ public class Node {
         }
 
         else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-            assert false : "Need opt CW";
-            return 0;
+            return rand.nextInt(optimalCW);
         }
         
         else {
