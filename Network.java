@@ -223,6 +223,23 @@ public class Network {
 		return transmissionDelay;
     }
 
+    public double getJains(){
+    	int packets = 0;
+    	double bitTimePerPacket = 0.0;
+
+    	double top = 0;
+    	double bot = 0;
+
+    	for (Node node : getMachines()) {
+	    	packets = node.stats.successfulPackets;
+	    	bitTimePerPacket = currentTime  / packets;
+	    	top += bitTimePerPacket;
+	    	bot += (bitTimePerPacket * bitTimePerPackets);
+		}
+		top *= top;
+		return top / (bot * getMachines().size());
+    }
+
 	public static void main(String[] args) throws IOException {
 		int iterations = 1000000;
 
@@ -244,8 +261,7 @@ public class Network {
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
-            //int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
-            int[] bytes = { 200 };
+            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
 
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
@@ -268,9 +284,9 @@ public class Network {
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
 
-                System.out.println("For " + nodes);
+                System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
 				for (Node node : net.getMachines()) {
-					System.out.println(node.nIdleAvg);
+					System.out.println("\t" + node.nIdleAvg);
 				}
             }
 		}

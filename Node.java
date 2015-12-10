@@ -30,6 +30,7 @@ public class Node {
     private double sumIdleSlots = 0.0;
     private int contentionWindow = 0;
     public double nIdleAvg = 0.0;
+    private int CUR_MAX_TRANS = Constants.MAX_TRANS;
 
     public Statistics stats = new Statistics();
 
@@ -100,7 +101,7 @@ public class Node {
                 startIdleTime = e.time;
             }
 
-            if (ntrans >= Constants.MAX_TRANS) {
+            if (ntrans >= CUR_MAX_TRANS) {
                 nIdleAvg = sumIdleSlots / ntrans;
                 ntrans = 0;
                 sumIdleSlots = 0;
@@ -111,6 +112,13 @@ public class Node {
                 } else {
                     /* decrease cw multiplicatively */
                     contentionWindow *= Constants.ALPHA;
+                }
+
+                if (Math.abs(Constants.nIdleTarget - nIdleAvg) <= Constants.BETA){
+                    CUR_MAX_TRANS = contentionWindow / Constants.GAMMA;
+                }
+                else{
+                    CUR_MAX_TRANS = Constants.MAX_TRANS;
                 }
             }
         }
