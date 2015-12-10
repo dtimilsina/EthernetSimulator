@@ -258,22 +258,6 @@ public class Network {
     	}
 
     	return sum_xi * sum_xi / (getMachines().size() * sum_xi_sq);
-
-  //   	int packets = 0;
-  //   	double bitTimePerPacket = 0.0;
-
-  //   	double top = 0;
-  //   	double bot = 0;
-
-  //   	for (Node node : getMachines()) {
-	 //    	packets = node.stats.successfulPackets;
-	 //    	//bitTimePerPacket = currentTime  / (1.0 * packets);
-	 //    	bitTimePerPacket = (1.0 * packets)/currentTime;	
-	 //    	top += bitTimePerPacket;
-	 //    	bot += (bitTimePerPacket * bitTimePerPacket);
-		// }
-		// top = top * top;
-		// return top / (bot * getMachines().size());
     }
 
 	public static void main(String[] args) throws IOException {
@@ -284,8 +268,6 @@ public class Network {
 		}
 
 		//System.out.format("Running %d iterations\n", iterations);
-
-		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
 
 		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
 		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
