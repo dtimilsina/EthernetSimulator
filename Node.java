@@ -4,6 +4,8 @@ public class Node {
 
     public static int EXPONENTIAL_BACKOFF = 0;
     public static int IDLE_SENSE = 1;
+    public static int IDEAL_BOGGS = 2;
+    public static int IDEAL_IDLE_SENSE = 3;
 
 	public int id;
 	public State state = State.UNINITIALIZED;
@@ -22,7 +24,11 @@ public class Node {
     private int backoffAlgorithm = Node.EXPONENTIAL_BACKOFF;
 
     // EXPONENTIAL BACKOFF
-    private int timesBackedOff = 0;
+    private int timesBackedOff = 0; 
+
+    // for 1/Q Boggs ideal
+    public int numMachines = 0;
+
 
     // IDLE SENSE
     private double startIdleTime = 0.0;
@@ -31,6 +37,9 @@ public class Node {
     private int contentionWindow = 0;
     public double nIdleAvg = 0.0;
     private int CUR_MAX_TRANS = Constants.MAX_TRANS;
+
+    // This isn't actually used by the node itself for clocking
+    public double currentTime = 0.0;
 
     public Statistics stats = new Statistics();
 
@@ -45,6 +54,10 @@ public class Node {
     public Node (int id, int backoffAlgorithm) {
         this(id);
         this.backoffAlgorithm = backoffAlgorithm;
+    }
+
+    public double throughput() {
+        return stats.bitsSent / currentTime;
     }
 
     public Action start() {
@@ -67,6 +80,8 @@ public class Node {
 
     public Action react(Event e) {
         assert e.dest == this;
+        
+        currentTime = e.time;
 
         Action reaction = own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
 
@@ -238,6 +253,15 @@ public class Node {
             if (contentionWindow == 0) return 0;
             return rand.nextInt(contentionWindow); // slots;
         } 
+
+        else if (backoffAlgorithm == Node.IDEAL_BOGGS) {
+            return rand.nextInt(numMachines);
+        }
+
+        else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
+            assert false : "Need opt CW";
+            return 0;
+        }
         
         else {
             assert false : "Whoa ho ho there that ain't no algorithm";

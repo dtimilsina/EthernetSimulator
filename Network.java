@@ -194,7 +194,16 @@ public class Network {
 
 		for (int n = 0; n < numNodes; n++) {
 			int pos = 1000*(n % 4) + 25*(n / 4);
-			topology.put(new Node(n, backoffAlgorithm), pos);
+			Node node = new Node(n, backoffAlgorithm);
+			topology.put(node, pos);
+
+			if (backoffAlgorithm == Node.IDEAL_BOGGS) {
+				node.numMachines = numNodes;
+			}
+
+			else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
+				// set cw
+			}
 		}
 
 		return topology;
@@ -223,22 +232,32 @@ public class Network {
 		return transmissionDelay;
     }
 
-    public double getJains(){
-    	int packets = 0;
-    	double bitTimePerPacket = 0.0;
-
-    	double top = 0;
-    	double bot = 0;
+    public double getJains() {
+    	double sum_xi = 0.0;
+    	double sum_xi_sq = 0.0;
 
     	for (Node node : getMachines()) {
-	    	packets = node.stats.successfulPackets;
-	    	//bitTimePerPacket = currentTime  / (1.0 * packets);
-	    	bitTimePerPacket = (1.0* packets)/currentTime;	
-	    	top += bitTimePerPacket;
-	    	bot += (bitTimePerPacket * bitTimePerPacket);
-		}
-		top *= top * 1.0;
-		return top / (bot * getMachines().size());
+    		sum_xi += node.throughput();
+    		sum_xi_sq += node.throughput() * node.throughput();
+    	}
+
+    	return sum_xi * sum_xi / (getMachines().size() * sum_xi_sq);
+
+  //   	int packets = 0;
+  //   	double bitTimePerPacket = 0.0;
+
+  //   	double top = 0;
+  //   	double bot = 0;
+
+  //   	for (Node node : getMachines()) {
+	 //    	packets = node.stats.successfulPackets;
+	 //    	//bitTimePerPacket = currentTime  / (1.0 * packets);
+	 //    	bitTimePerPacket = (1.0 * packets)/currentTime;	
+	 //    	top += bitTimePerPacket;
+	 //    	bot += (bitTimePerPacket * bitTimePerPacket);
+		// }
+		// top = top * top;
+		// return top / (bot * getMachines().size());
     }
 
 	public static void main(String[] args) throws IOException {
@@ -248,7 +267,7 @@ public class Network {
 			iterations = Integer.parseInt(args[0]);
 		}
 
-		System.out.format("Running %d iterations\n", iterations);
+		//System.out.format("Running %d iterations\n", iterations);
 
 		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
 
@@ -264,20 +283,21 @@ public class Network {
 		fairness.println("Hosts,Bytes,Fairness");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
+			System.out.format("Running %d iterations\n", iterations * nodes);
 
             int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
 
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
 
                 Network net = new Network(topology);
 
 				Constants.MAX_TRANS = Math.max(nodes, 5);
 				Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
-
-                net.simulate(iterations);
+				
+                net.simulate(iterations * nodes);
 
                 int bits = 8 * byteCount;
                 double used = bits + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP;
