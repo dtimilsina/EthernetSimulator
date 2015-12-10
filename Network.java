@@ -293,7 +293,7 @@ public class Network {
                 Network net = new Network(topology);
 
 				Constants.MAX_TRANS = Math.max(nodes, 5);
-				Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
+				Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
 				
                 net.simulate(iterations * nodes);
 

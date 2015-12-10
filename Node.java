@@ -36,7 +36,7 @@ public class Node {
     private double sumIdleSlots = 0.0;
     private int contentionWindow = 0;
     public double nIdleAvg = 0.0;
-    private int CUR_MAX_TRANS = Constants.MAX_TRANS;
+    private int maxtrans = Constants.MAX_TRANS;
 
     // This isn't actually used by the node itself for clocking
     public double currentTime = 0.0;
@@ -80,7 +80,7 @@ public class Node {
 
     public Action react(Event e) {
         assert e.dest == this;
-        
+
         currentTime = e.time;
 
         Action reaction = own(e) ? nextActionInSequence(e) : reactToExternalEvent(e);
@@ -116,12 +116,12 @@ public class Node {
                 startIdleTime = e.time;
             }
 
-            if (ntrans >= CUR_MAX_TRANS) {
+            if (ntrans >= maxtrans) {
                 nIdleAvg = sumIdleSlots / ntrans;
                 ntrans = 0;
                 sumIdleSlots = 0;
 
-                if (nIdleAvg < Constants.nIdleTarget) {
+                if (nIdleAvg < Constants.IDLE_TARGET) {
                     /* increase cw additively */
                     contentionWindow = contentionWindow + Constants.EPS;
                 } else {
@@ -129,11 +129,11 @@ public class Node {
                     contentionWindow *= Constants.ALPHA;
                 }
 
-                if (Math.abs(Constants.nIdleTarget - nIdleAvg) <= Constants.BETA){
-                    CUR_MAX_TRANS = contentionWindow / Constants.GAMMA;
+                if (Math.abs(Constants.IDLE_TARGET - nIdleAvg) <= Constants.BETA){
+                    maxtrans = contentionWindow / Constants.GAMMA;
                 }
                 else{
-                    CUR_MAX_TRANS = Constants.MAX_TRANS;
+                    maxtrans = Constants.MAX_TRANS;
                 }
             }
         }
