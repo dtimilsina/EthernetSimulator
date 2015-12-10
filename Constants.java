@@ -39,7 +39,7 @@ public class Constants {
 	public static int MAX_TRANS = 5;
 	public static double nIdleTarget = 0;
 
-	public static 		int EPS = 6;
+	public static 		int EPS = 1;//6;
 	public static 		double ALPHA = 0.9375;
 
 }

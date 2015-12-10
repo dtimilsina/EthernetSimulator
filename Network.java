@@ -244,8 +244,8 @@ public class Network {
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
-            //int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
-            int[] bytes = { 200 };
+            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
+            //int[] bytes = { 200 };
 
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
@@ -255,7 +255,7 @@ public class Network {
                 Network net = new Network(topology);
 
 				Constants.MAX_TRANS = Math.max(nodes, 5);
-				Constants.nIdleTarget = Constants.nIdleAvgOpt[nodes-1];
+				Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
 
                 net.simulate(iterations);
 
