@@ -20,6 +20,13 @@ public class Constants {
 	public static final int MIN_PACKET_SIZE = 512;
 	public static       int MAX_PACKET_SIZE = 2048;
 
+
 	// Idle sense
 	public static int MAX_TRANS = 5;
+
+	public static 		double EPI = 6.0;
+	public static   	double BETA = 0.75;
+	public static   	double GEMMA = 4.0;
+	public static 		double ONE_OVER_A = 1.0666;
+
 }
