@@ -23,10 +23,11 @@ public class Constants {
 
 	// Idle sense
 	public static int MAX_TRANS = 5;
+	public final static double nIdleTarget = 0;
 
-	public static 		double EPI = 6.0;
+	public static 		double EPS = 6.0;
 	public static   	double BETA = 0.75;
 	public static   	double GEMMA = 4.0;
-	public static 		double ONE_OVER_A = 1.0666;
+	public static 		double ALPHA = 0.9375;
 
 }

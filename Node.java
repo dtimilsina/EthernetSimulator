@@ -78,7 +78,14 @@ public class Node {
                 nIdleAvg = sumIdleSlots / ntrans;
                 ntrans = 0;
                 sumIdleSlots = 0;
-                
+
+                if (nIdleAvg < Constants.nIdleTarget) {
+                    /* increase cw additively */
+                    contentionWindow = contentionWindow + Constants.EPS;
+                } else {
+                    /* decrease cw multiplicatively */
+                    contentionWindow *= Constants.ALPHA;
+                }                 
             }
         }
 
