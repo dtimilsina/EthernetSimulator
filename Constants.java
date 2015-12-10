@@ -36,10 +36,11 @@ public class Constants {
 	1.46322747146, 1.46418623157, 1.4653031853, 1.4660326072, 1.46681953292, 1.46758842328};
 
 	// Idle sense
-	public static int MAX_TRANS = 5;
+	public static int MAX_TRANS = 10;
 	public static double nIdleTarget = 0;
 
-	public static 		int EPS = 1;//6;
-	public static 		double ALPHA = 0.9375;
-
+	public static 		int EPS = 3;
+	public static 		double ALPHA = 0.95;
+	public static 		double BETA = .8;
+	public static 		int GAMMA = 1;
 }

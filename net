@@ -15,4 +15,7 @@ python GraphPlotter.py "data_3-5.csv" 5 > /dev/null
 echo "Graphing 7"
 python GraphPlotter.py "data_3-7.csv" 7 > /dev/null
 
+echo "Graphing fairness"
+python GraphPlotter.py "fairness.csv" 9 > /dev/null
+
 open *.png

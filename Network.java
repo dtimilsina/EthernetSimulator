@@ -223,6 +223,24 @@ public class Network {
 		return transmissionDelay;
     }
 
+    public double getJains(){
+    	int packets = 0;
+    	double bitTimePerPacket = 0.0;
+
+    	double top = 0;
+    	double bot = 0;
+
+    	for (Node node : getMachines()) {
+	    	packets = node.stats.successfulPackets;
+	    	//bitTimePerPacket = currentTime  / (1.0 * packets);
+	    	bitTimePerPacket = (1.0* packets)/currentTime;	
+	    	top += bitTimePerPacket;
+	    	bot += (bitTimePerPacket * bitTimePerPacket);
+		}
+		top *= top * 1.0;
+		return top / (bot * getMachines().size());
+    }
+
 	public static void main(String[] args) throws IOException {
 		int iterations = 1000000;
 
@@ -237,20 +255,22 @@ public class Network {
 		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
 		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
 		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
+		PrintWriter fairness = new PrintWriter("fairness.csv", "UTF-8");
+
 
 		write3_3.println("Hosts,Bytes,PacketsPerSecond");
 		write3_5.println("Hosts,Bytes,PacketsPerSecond");
 		write3_7.println("Hosts,Bytes,PacketsPerSecond");
+		fairness.println("Hosts,Bytes,Fairness");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
             int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
-            //int[] bytes = { 200 };
 
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
 
                 Network net = new Network(topology);
 
@@ -267,16 +287,21 @@ public class Network {
                 write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
+                fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
 
-                System.out.println("For " + nodes);
+
+                System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
+                /*
 				for (Node node : net.getMachines()) {
-					System.out.println(node.nIdleAvg);
-				}
+					System.out.println("\t" + node.nIdleAvg);
+				}*/
+				System.out.println(net.getJains());
             }
 		}
 
 		write3_3.close();
 		write3_5.close();
 		write3_7.close();
+		fairness.close();
 	}
 }

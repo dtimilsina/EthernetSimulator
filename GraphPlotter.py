@@ -46,4 +46,10 @@ elif graph_number == 7:
     plt.ylabel('Average Tranmission Delay in Milliseconds')
     plt.savefig('fig3-7.png',dpi=100)
 
+elif graph_number == 9:
+    plt.title("Jain's Fairness Index")
+    plt.xlabel('Number of Hosts')
+    plt.ylabel('Fairness')
+    plt.savefig('Fairness.png',dpi=100)
+
 plt.clf()
