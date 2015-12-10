@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 
 def opt_idle(val):
 	n,peopt = val
-	#return (1 -peopt)**n / (1 - (1 -peopt)**n)
-	return 1.0 / (1 - (1 -peopt)**n)
+	pi = (1-peopt)**n
+	return pi / (1-pi)
 
 def cw_idle(val):
 	n,peopt = val
