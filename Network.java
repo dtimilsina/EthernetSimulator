@@ -252,6 +252,7 @@ public class Network {
                 Map<Node, Integer> topology = Network.generateTopology(nodes);
 
                 Network net = new Network(topology);
+				Constants.MAX_TRANS = Math.max(nodes, 5);
 
                 net.simulate(iterations);
 

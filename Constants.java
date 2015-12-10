@@ -19,4 +19,7 @@ public class Constants {
 
 	public static final int MIN_PACKET_SIZE = 512;
 	public static       int MAX_PACKET_SIZE = 2048;
+
+	// Idle sense
+	public static int MAX_TRANS = 5;
 }

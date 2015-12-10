@@ -11,6 +11,20 @@ public class Statistics {
 	public int slotsWaited = 0;
 	public int packetsAborted = 0;
 
+	// Idle sense
+	/*
+	public int idleSlots = 0;
+	public int numTransmissions = 0;
+
+	public void addIdleSlots(int n) {
+		idleSlots += n;
+	}
+
+	public void incrTransmissions() {
+		numTransmissions++;
+	}
+	*/
+
 	public void addSuccessfulPacket(int sentBits) {
 		successfulPackets++;
 		bitsSent += sentBits;

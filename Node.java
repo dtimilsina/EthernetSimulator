@@ -18,6 +18,14 @@ public class Node {
 
     private int timesBackedOff = 0;
 
+    
+    // For clocking number of idle slots seen
+    private double startIdleTime = 0.0;
+    private int ntrans = 0;
+    private double sumIdleSlots = 0.0;
+    private int contentionWindow = 0;
+    private double nIdleAvg = 0.0;
+
     public Statistics stats = new Statistics();
 
     Random rand;
@@ -49,6 +57,31 @@ public class Node {
 
         record(e, reaction);
 
+
+        // check causes line to go from idle to busy
+        if (e.eventType == EventType.PREAMBLE_START && numberOpenTransmissions == 1) {
+            double idleTime = e.time - startIdleTime;
+            double idleSlots = idleTime / Constants.SLOT_TIME;
+            sumIdleSlots += idleSlots;            
+        } 
+
+        // some transmission ends
+        else if (e.eventType == EventType.JAMMING_END || e.eventType == EventType.PACKET_END) {
+            ntrans++;
+
+            // line goes idle because of this event
+            if (isLineIdle()) {
+                startIdleTime = e.time;
+            }
+
+            if (ntrans >= Constants.MAX_TRANS) {
+                nIdleAvg = sumIdleSlots / ntrans;
+                ntrans = 0;
+                sumIdleSlots = 0;
+                
+            }
+        }
+
         return reaction;
     }
 
@@ -56,7 +89,7 @@ public class Node {
         history.add(new EventAction(e, reaction));
         if (history.size() > HISTORY_SIZE) {
             history.removeFirst();
-        }        
+        }
     }
 
     private boolean own(Event e) {
@@ -158,9 +191,13 @@ public class Node {
     }
 
     private int nextBackoffSlots() {
-        int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : Constants.MAX_BACKOFF_SLOTS;
-        int slots = rand.nextInt(maxWait);
-        return slots;
+        //int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : Constants.MAX_BACKOFF_SLOTS;
+        //int slots = rand.nextInt(maxWait);
+        if (timesBackedOff < 10) {
+            contentionWindow = (int) Math.pow(2, 1 + timesBackedOff);
+        }
+
+        return rand.nextInt(contentionWindow); // slots;
     }
 
     private Action sendIfIdle() {
