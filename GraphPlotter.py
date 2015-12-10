@@ -52,4 +52,10 @@ elif graph_number == 9:
     plt.ylabel('Fairness')
     plt.savefig('Fairness.png',dpi=100)
 
+elif graph_number == 10:
+    plt.title("Excess Transmission Delay")
+    plt.xlabel('Number of Hosts')
+    plt.ylabel('Excess Transmission Delay in Bittimes')
+    plt.savefig('ExcessDelay.png',dpi=100)
+
 plt.clf()

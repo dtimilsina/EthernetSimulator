@@ -12,6 +12,8 @@ public class Network {
 
 	private double currentTime = 0.0;
 
+	private double waitTime = 0.0;
+
 	private Map<Node, Set<Integer>> cancelledPackets;
 
 
@@ -149,6 +151,7 @@ public class Network {
 	}
 
 	private void waitEvent(Action action) {
+		waitTime += action.duration;
 		double time = currentTime + action.duration;
 		Event event = new Event(EventType.WAIT_END, action.source, action.source, time, action.packetId);
 		add(event);
@@ -232,6 +235,20 @@ public class Network {
 		return transmissionDelay;
     }
 
+		// this is not entirely correct
+		public double getTransmissionDelaySD(){
+			double sd = 0.0;
+			double mean = getTransmissionDelay()/getMachines().size();
+			for (Node node: getMachines()){
+					int successfulPackets = node.stats.successfulPackets;
+					double bitTime = currentTime / successfulPackets;
+					double transmissionDelay = bitTime / 10000;
+					sd += Math.pow(transmissionDelay - mean,2);
+			}
+			sd /= (getMachines().size()-1);
+			return Math.pow(sd,0.5);
+		}
+
     public double avgPacketSize() {
     	double size = 0.0;
 
@@ -243,10 +260,9 @@ public class Network {
     }
 
     public double excessTransmissionDelay() {
-    	double otherMachines = getMachines().size() - 1;
-    	double ideal = otherMachines * (avgPacketSize() + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP);
-    	return getTransmissionDelay() - ideal;
-    }
+    	double ideal = (Constants.MAX_PACKET_SIZE + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP) * getMachines().size() ;
+    	return (getTransmissionDelay() * 10000 - ideal);
+	  }
 
     public double getJains() {
     	double sum_xi = 0.0;
@@ -273,12 +289,14 @@ public class Network {
 		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
 		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
 		PrintWriter fairness = new PrintWriter("fairness.csv", "UTF-8");
+		PrintWriter excessDelay = new PrintWriter("excessDelay.csv","UTF-8");
 
 
 		write3_3.println("Hosts,Bytes,PacketsPerSecond");
 		write3_5.println("Hosts,Bytes,PacketsPerSecond");
 		write3_7.println("Hosts,Bytes,PacketsPerSecond");
 		fairness.println("Hosts,Bytes,Fairness");
+		excessDelay.println("Hosts,Bytes,excessDelay");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 			System.out.format("Running %d iterations\n", iterations * nodes);
@@ -294,7 +312,7 @@ public class Network {
 
 				Constants.MAX_TRANS = Math.max(nodes, 5);
 				Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
-				
+
                 net.simulate(iterations * nodes);
 
                 int bits = 8 * byteCount;
@@ -306,14 +324,15 @@ public class Network {
                 write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
                 fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
+								excessDelay.format("%d,%d,%f\n", nodes,byteCount,net.excessTransmissionDelay());
 
 
-                System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
+                //System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
                 /*
 				for (Node node : net.getMachines()) {
 					System.out.println("\t" + node.nIdleAvg);
 				}*/
-				System.out.println(net.getJains());
+				//System.out.println(net.getJains());
             }
 		}
 
@@ -321,5 +340,6 @@ public class Network {
 		write3_5.close();
 		write3_7.close();
 		fairness.close();
+		excessDelay.close();
 	}
 }
