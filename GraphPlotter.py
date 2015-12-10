@@ -4,52 +4,46 @@ import numpy as np
 import csv
 
 data = np.genfromtxt(sys.argv[1],skiprows=1,delimiter=',')
-graph_number= int(sys.argv[2])
+data2 = np.genfromtxt(sys.argv[2],skiprows=1,delimiter=',')
+data3 = np.genfromtxt(sys.argv[3],skiprows=1,delimiter=',')
+#data4 = np.genfromtxt(sys.argv[4],skiprows=1,delimiter=',')
+
 
 x=data[:,0]
 y=data[:,1]
-z=data[:,2]
+
+x2=data2[:,0]
+y2=data2[:,1]
+
+x3=data3[:,0]
+y3=data3[:,1]
+
+'''
+x4=data4[:,0]
+y4=data4[:,1]
+'''
 
 x = [int(x_val) for x_val in x]
-y = [int(y_val) for y_val in y]
-z = [float(y_val) for y_val in z]
+y = [float(y_val) for y_val in y]
 
+x2 = [int(x_val) for x_val in x2]
+y2 = [float(y_val) for y_val in y2]
 
-#plt.ylim(0,10)
-#plt.xlim(0,10)
-for bytesVal in y:
-    hosts = [a for a,b,c in zip(x,y,z) if b == bytesVal]
-    print hosts
-    vals = [c for a,b,c in zip(x,y,z) if b == bytesVal]
-    print vals
-    plt.plot(hosts,vals,'+')
-    plt.plot(hosts,vals,linewidth=1)
-    print "____________"
+x3 = [int(x_val) for x_val in x3]
+y3 = [float(y_val) for y_val in y3]
 
+'''
+x4 = [int(x_val) for x_val in x4]
+y4 = [float(y_val) for y_val in y4]
+'''
 
-if graph_number == 3:
-    plt.ylim(7,10)
-    plt.title('Total Bit Rate')
-    plt.xlabel('Number of Hosts')
-    plt.ylabel('Ethernet Utilization in MBits\Sec')
-    plt.savefig('fig3-3.png',dpi=100)
+i_s, = plt.plot(x,y,'+',label='Idle Sense')
+e_b, = plt.plot(x2,y2,'+',label='Exponential Backoff')
+o_q, = plt.plot(x3,y3,'+',label='1/Q')
+#plt.plot(x4,y4,'+',label='Ideal Idle Sense')
 
-elif graph_number == 5:
-    plt.title('Total Packet Rate')
-    plt.xlabel('Number of Hosts')
-    plt.ylabel('Ethernet Utilization in Packets\Sec')
-    plt.savefig('fig3-5.png',dpi=100)
+plt.legend(loc='lower right',numpoints=1)
 
-elif graph_number == 7:
-    plt.title('Average Tranmission Delay')
-    plt.xlabel('Number of Hosts')
-    plt.ylabel('Average Tranmission Delay in Milliseconds')
-    plt.savefig('fig3-7.png',dpi=100)
-
-elif graph_number == 9:
-    plt.title("Jain's Fairness Index")
-    plt.xlabel('Number of Hosts')
-    plt.ylabel('Fairness')
-    plt.savefig('Fairness.png',dpi=100)
-
-plt.clf()
+plt.xlabel('Number of Iterations')
+plt.ylabel("Jain's Fairness Index")
+plt.savefig('fig13.png',dpi=100)

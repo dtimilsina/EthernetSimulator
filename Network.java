@@ -261,67 +261,67 @@ public class Network {
     }
 
 	public static void main(String[] args) throws IOException {
-		int iterations = 1000000;
-
-		if (args.length > 0) {
-			iterations = Integer.parseInt(args[0]);
+		int[] iterations = new int[99];
+		for (int a = 1; a < 100; a++){
+			iterations[a - 1] = (a * 10000);
 		}
 
-		//System.out.format("Running %d iterations\n", iterations);
+		int nodes = 16;
+		int byteCount = 1024;
+        Constants.MAX_PACKET_SIZE = byteCount * 8;
+        Constants.MAX_TRANS = Math.max(nodes, 5);
+		Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
 
-		//settings.PACKET_FORMULA = NetSettings.PacketSizeFormula.MAX;
-
-		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
-		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
-		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
-		PrintWriter fairness = new PrintWriter("fairness.csv", "UTF-8");
-
-
-		write3_3.println("Hosts,Bytes,PacketsPerSecond");
-		write3_5.println("Hosts,Bytes,PacketsPerSecond");
-		write3_7.println("Hosts,Bytes,PacketsPerSecond");
-		fairness.println("Hosts,Bytes,Fairness");
-
-		for (int nodes = 1; nodes <= 24; nodes++){
-			System.out.format("Running %d iterations\n", iterations * nodes);
-
-            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
-
-            for(int byteCount : bytes) {
-            	Constants.MAX_PACKET_SIZE = byteCount * 8;
-
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
-
-                Network net = new Network(topology);
-
-				Constants.MAX_TRANS = Math.max(nodes, 5);
-				Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
-				
-                net.simulate(iterations * nodes);
-
-                int bits = 8 * byteCount;
-                double used = bits + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP;
-                double mbits = used / Math.pow(10, 6);
-                double totalBitRate = net.getPacketsPerSecond() * mbits;
-
-                write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
-                write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
-                write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
-                fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
+		PrintWriter IDLEfig13 = new PrintWriter("IDLEfig13.csv", "UTF-8");
+		PrintWriter EXOfig13 = new PrintWriter("EXOfig13.csv", "UTF-8");
+		PrintWriter BOGGSfig13 = new PrintWriter("BOGGSfig13.csv", "UTF-8");
+		//PrintWriter IDEALfig13 = new PrintWriter("IDEALfig13.csv", "UTF-8");
 
 
-                System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
-                /*
-				for (Node node : net.getMachines()) {
-					System.out.println("\t" + node.nIdleAvg);
-				}*/
-				System.out.println(net.getJains());
-            }
+		IDLEfig13.println("WindowSize,Fairness");
+		EXOfig13.println("WindowSize,Fairness");
+		BOGGSfig13.println("WindowSize,Fairness");
+		//IDEALfig13.println("WindowSize,Fairness");
+
+		for (int numIteration : iterations){
+			System.out.format("Running %d iterations\n", numIteration);
+			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
+            Network net = new Network(topology);
+            net.simulate(numIteration);
+
+            IDLEfig13.format("%d,%f\n", numIteration,net.getJains());
 		}
 
-		write3_3.close();
-		write3_5.close();
-		write3_7.close();
-		fairness.close();
+		for (int numIteration : iterations){
+			System.out.format("Running %d iterations\n", numIteration);
+			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
+            Network net = new Network(topology);
+            net.simulate(numIteration);
+
+            EXOfig13.format("%d,%f\n", numIteration,net.getJains());
+		}
+
+		for (int numIteration : iterations){
+			System.out.format("Running %d iterations\n", numIteration);
+			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_BOGGS);
+            Network net = new Network(topology);
+            net.simulate(numIteration);
+
+            BOGGSfig13.format("%d,%f\n", numIteration,net.getJains());
+		}
+		/*
+		for (int numIteration : iterations){
+			System.out.format("Running %d iterations\n", numIteration);
+			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_IDLE_SENSE);
+            Network net = new Network(topology);
+            net.simulate(numIteration);
+
+            IDEALfig13.format("%d,%f\n", numIteration,net.getJains());
+		}
+		*/
+		IDLEfig13.close();
+		EXOfig13.close();
+		BOGGSfig13.close();
+		//IDEALfig13.close();
 	}
 }

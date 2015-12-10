@@ -1,6 +1,6 @@
 make:
 	javac *.java
-
-make clean:
+clean:
 	rm *.class
 	rm *.csv
+	rm *.txt
