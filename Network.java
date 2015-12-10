@@ -232,6 +232,22 @@ public class Network {
 		return transmissionDelay;
     }
 
+    public double avgPacketSize() {
+    	double size = 0.0;
+
+    	for (Node node : getMachines()) {
+    		size += node.stats.bitsSent;
+    	}
+
+    	return size / getMachines().size();
+    }
+
+    public double excessTransmissionDelay() {
+    	double otherMachines = getMachines().size() - 1;
+    	double ideal = otherMachines * (avgPacketSize() + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP);
+    	return getTransmissionDelay() - ideal;
+    }
+
     public double getJains() {
     	double sum_xi = 0.0;
     	double sum_xi_sq = 0.0;
@@ -290,7 +306,7 @@ public class Network {
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
 
                 Network net = new Network(topology);
 
