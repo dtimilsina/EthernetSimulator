@@ -2,6 +2,9 @@ import java.util.*;
 
 public class Node {
 
+    public static int EXPONENTIAL_BACKOFF = 0;
+    public static int IDLE_SENSE = 1;
+
 	public int id;
 	public State state = State.UNINITIALIZED;
 
@@ -16,10 +19,12 @@ public class Node {
     // arrive after a packet has been canceled
     public int packetAttempt = 0;
 
+    private int backoffAlgorithm = Node.EXPONENTIAL_BACKOFF;
+
+    // EXPONENTIAL BACKOFF
     private int timesBackedOff = 0;
 
-    
-    // For clocking number of idle slots seen
+    // IDLE SENSE
     private double startIdleTime = 0.0;
     private int ntrans = 0;
     private double sumIdleSlots = 0.0;
@@ -36,6 +41,11 @@ public class Node {
         rand = new Random(this.id);
     }
 
+    public Node (int id, int backoffAlgorithm) {
+        this(id);
+        this.backoffAlgorithm = backoffAlgorithm;
+    }
+
     public Action start() {
         assert state == State.UNINITIALIZED : state.name();;
 
@@ -44,9 +54,13 @@ public class Node {
 
     private Action prepareNextPacket() {
         transitionTo(State.PREPARING_NEXT_PACKET);
+
         timesBackedOff = 0;
+
         currentPacketSize = nextPacketSize();
-        double duration = Constants.PACKET_READY_TIME + rand.nextGaussian(); //Event.samplePacketReadyTime();
+
+        double duration = Constants.PACKET_READY_TIME + rand.nextGaussian();
+
         return new Action(ActionType.PREPARE_PACKET, duration, this, packetAttempt);
     }
 
@@ -57,9 +71,21 @@ public class Node {
 
         record(e, reaction);
 
+        updateIdleSense(e);
 
+        return reaction;
+    }
+
+    private void record(Event e, Action reaction) {
+        history.add(new EventAction(e, reaction));
+        if (history.size() > HISTORY_SIZE) {
+            history.removeFirst();
+        }
+    }
+
+    private void updateIdleSense(Event e) {
         // check causes line to go from idle to busy
-        if (e.eventType == EventType.PREAMBLE_START && numberOpenTransmissions == 1) {
+        if (e.eventType == EventType.PREAMBLE_START && numberOpenTransmissions() == 1) {
             double idleTime = e.time - startIdleTime;
             double idleSlots = idleTime / Constants.SLOT_TIME;
             sumIdleSlots += idleSlots;            
@@ -85,17 +111,8 @@ public class Node {
                 } else {
                     /* decrease cw multiplicatively */
                     contentionWindow *= Constants.ALPHA;
-                }                 
+                }
             }
-        }
-
-        return reaction;
-    }
-
-    private void record(Event e, Action reaction) {
-        history.add(new EventAction(e, reaction));
-        if (history.size() > HISTORY_SIZE) {
-            history.removeFirst();
         }
     }
 
@@ -200,11 +217,21 @@ public class Node {
     private int nextBackoffSlots() {
         //int maxWait = timesBackedOff < 10 ? (int) Math.pow(2, 1+timesBackedOff) : Constants.MAX_BACKOFF_SLOTS;
         //int slots = rand.nextInt(maxWait);
-        if (timesBackedOff < 10) {
-            contentionWindow = (int) Math.pow(2, 1 + timesBackedOff);
-        }
+        if (backoffAlgorithm == Node.EXPONENTIAL_BACKOFF) {
+            if (timesBackedOff < 10) {
+                int maxWait = (int) Math.pow(2, 1 + timesBackedOff)
+                return rand.nextInt(maxWait);
+            }
+        } 
 
-        return rand.nextInt(contentionWindow); // slots;
+        else if (backoffAlgorithm == Node.IDLE_SENSE) {
+            return rand.nextInt(contentionWindow); // slots;
+        } 
+        
+        else {
+            assert false : "Whoa ho ho there that ain't no algorithm";
+            return 0;
+        }
     }
 
     private Action sendIfIdle() {
