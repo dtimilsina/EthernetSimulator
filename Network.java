@@ -219,7 +219,7 @@ public class Network {
 	    	total_packets += node.stats.successfulPackets;
 		}
 		double bitTimePerPacket = currentTime * getMachines().size() / total_packets;
-		double transmissionDelay = bitTimePerPacket / 100000;
+		double transmissionDelay = bitTimePerPacket / 10000;
 		return transmissionDelay;
     }
 
