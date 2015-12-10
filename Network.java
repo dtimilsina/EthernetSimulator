@@ -240,7 +240,7 @@ public class Network {
 
 		write3_3.println("Hosts,Bytes,PacketsPerSecond");
 		write3_5.println("Hosts,Bytes,PacketsPerSecond");
-		write3_7.println("Hosts,Bytes,PacketsPerSecond");				
+		write3_7.println("Hosts,Bytes,PacketsPerSecond");
 
 		for (int nodes = 1; nodes <= 24; nodes++){
 
