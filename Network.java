@@ -262,64 +262,65 @@ public class Network {
 
 	public static void main(String[] args) throws IOException {
 		int iterations = 1000000;
+		/*
+		int[] eps =       { 1, 2, 3, 4, 5, 7, 9, 14, 18, 25 };
+		double[] alphas = { .95, .955, .96, .965, .97, .975, .98, .985, .99 };
+		double[] betas =  { .5 , .65, .7, .725, .75, .775, 1.0};
+		int[] gammas = 	  { 1, 2, 3, 4, 5, 6 };
+		boolean[] halved =  { true, false};
+		*/
+		int[] eps = {8,10,12,14};
+		double[] alphas = {.98,.985, .99, .995};
+		double[] betas = {.5, .65,.725, .85,1.0};
+		int[] gammas = 	  {2, 3, 4};
+		boolean[] halved =  { true, false};
 
-		if (args.length > 0) {
-			iterations = Integer.parseInt(args[0]);
+		int byteCount = 64;
+		int nodes = 7;
+	
+		Constants.MAX_PACKET_SIZE = byteCount * 8;
+		Constants.MAX_TRANS = Math.max(nodes, 5);
+		Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
+
+
+		PrintWriter writer = new PrintWriter("Constants.csv", "UTF-8");
+		writer.println("eps,alphas,betas,gammas,halved,PacketsPerSecond");
+
+
+		for(int e : eps) {
+			for(double a : alphas) {
+				for(double b : betas) {
+					for(int g: gammas) {
+						for (boolean half : halved) {
+							System.out.format("%d,%f,%f,%d\n",e,a,b,g);
+
+							Constants.EPS   = e;
+							Constants.ALPHA = a;
+							Constants.BETA  = b;
+							Constants.GAMMA = g;
+							if (half) {
+								Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
+							}
+							else {
+								Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT[nodes-1];
+							}
+
+
+							Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
+							Network net = new Network(topology);
+							net.simulate(iterations * nodes);
+							if (half) {
+								writer.format("%d,%f,%f,%d,halved,%f\n",e,a,b,g,net.getPacketsPerSecond());
+							}
+							else {
+								writer.format("%d,%f,%f,%d,full,%f\n",e,a,b,g,net.getPacketsPerSecond());
+
+							}
+						}
+					}	
+				}
+			}
 		}
-
-		//System.out.format("Running %d iterations\n", iterations);
-
-		PrintWriter write3_3 = new PrintWriter("data_3-3.csv", "UTF-8");
-		PrintWriter write3_5 = new PrintWriter("data_3-5.csv", "UTF-8");
-		PrintWriter write3_7 = new PrintWriter("data_3-7.csv", "UTF-8");
-		PrintWriter fairness = new PrintWriter("fairness.csv", "UTF-8");
-
-
-		write3_3.println("Hosts,Bytes,PacketsPerSecond");
-		write3_5.println("Hosts,Bytes,PacketsPerSecond");
-		write3_7.println("Hosts,Bytes,PacketsPerSecond");
-		fairness.println("Hosts,Bytes,Fairness");
-
-		for (int nodes = 1; nodes <= 24; nodes++){
-			System.out.format("Running %d iterations\n", iterations * nodes);
-
-            int[] bytes = { 64, 128, 256, 512, 768, 1024, 1536, 2048, 3072, 4000 };
-
-            for(int byteCount : bytes) {
-            	Constants.MAX_PACKET_SIZE = byteCount * 8;
-
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
-
-                Network net = new Network(topology);
-
-				Constants.MAX_TRANS = Math.max(nodes, 5);
-				Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
-				
-                net.simulate(iterations * nodes);
-
-                int bits = 8 * byteCount;
-                double used = bits + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP;
-                double mbits = used / Math.pow(10, 6);
-                double totalBitRate = net.getPacketsPerSecond() * mbits;
-
-                write3_3.format("%d,%d,%f\n", nodes, byteCount, totalBitRate);
-                write3_5.format("%d,%d,%f\n", nodes,byteCount,net.getPacketsPerSecond());
-                write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
-                fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
-
-
-                System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
-                /*
-				for (Node node : net.getMachines()) {
-					System.out.println("\t" + node.nIdleAvg);
-				}*/
-				System.out.println(net.getJains());
-            }
-		}
-
-		write3_3.close();
-		write3_5.close();
-		write3_7.close();
-		fairness.close();
-	}
+		writer.close();
+	}				
 }
