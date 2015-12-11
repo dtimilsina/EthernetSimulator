@@ -45,8 +45,4 @@ public class Statistics {
 	public void addAbort(){
 		packetsAborted++;
 	}
-
-	public static void main(String[] args) {
-
-	}
 }

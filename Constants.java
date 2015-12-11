@@ -6,7 +6,7 @@ public class Constants {
 
 	public final static double PREAMBLE_TIME     = 64.0;
 
-	public final static double JAMMING_TIME      = 32.0; // groovy
+	public final static double JAMMING_TIME      = 32.0;
 
 	public final static double PACKET_READY_TIME = 1024.0;
 
@@ -14,11 +14,11 @@ public class Constants {
 
 	public final static double TRANSMISSION_RATE = 1.0;
 
-	public final static int MAX_BACKOFF_TIMES = 16;
-	public final static int MAX_BACKOFF_SLOTS = 1024;
+	public final static int    MAX_BACKOFF_TIMES = 16;
+	public final static int    MAX_BACKOFF_SLOTS = 1024;
 
-	public static final int MIN_PACKET_SIZE = 512;
-	public static       int MAX_PACKET_SIZE = 2048;
+	public static final int    MIN_PACKET_SIZE = 512;
+	public static       int    MAX_PACKET_SIZE = 2048;
 
 	public static final double[] PE_OPT = 
 		{ 1.0, 0.623, 0.437, 0.335, 0.271, 0.227, 
@@ -51,11 +51,10 @@ public class Constants {
 		  0.465303185301, 0.466032607199, 0.466819532925, 0.467588423275 };
 
 	// Idle sense
-	public static int MAX_TRANS = 10;
+	public static int MAX_TRANS      = 10;
 	public static double IDLE_TARGET = 0;
-
-	public static 		int EPS = 12;
-	public static 		double ALPHA = 0.99;
-	public static 		double BETA = .5;
-	public static 		int GAMMA = 3;
+	public static int EPS            = 12;
+	public static double ALPHA       = 0.99;
+	public static double BETA        = .5;
+	public static int GAMMA          = 3;
 }

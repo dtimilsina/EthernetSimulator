@@ -61,10 +61,4 @@ public class EventQueue {
 	public String toString() {
 		return pq.toString();
 	}
-	
-
-	/** For testing **/
-	public static void main(String[] args) {	
-
-	}
 }

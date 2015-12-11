@@ -323,14 +323,6 @@ public class Network {
                 write3_7.format("%d,%d,%f\n", nodes,byteCount,net.getTransmissionDelay());
                 fairness.format("%d,%d,%f\n", nodes,byteCount,net.getJains());
 								excessDelay.format("%d,%d,%f\n", nodes,byteCount,net.excessTransmissionDelay());
-
-
-                //System.out.println("For: " + nodes + " nodes and " + byteCount + " packets");
-                /*
-				for (Node node : net.getMachines()) {
-					System.out.println("\t" + node.nIdleAvg);
-				}*/
-				//System.out.println(net.getJains());
             }
 		}
 

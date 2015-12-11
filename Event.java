@@ -24,10 +24,6 @@ public class Event {
         this.packetId = packetId;
     }
 
-    // public static double samplePacketReadyTime() {
-    //     return Event.PACKET_READY_TIME + rand.nextGaussian();
-    // }
-
     public boolean isStartEvent() {
         return this.eventType == EventType.PREAMBLE_START ||
                this.eventType == EventType.PACKET_START   || 

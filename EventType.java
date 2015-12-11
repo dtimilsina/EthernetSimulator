@@ -12,7 +12,5 @@ public enum EventType {
 
 
 /*
-
 Action a preamble => preamble start, end, packet start, end
-
 */

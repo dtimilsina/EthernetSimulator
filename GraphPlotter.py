@@ -14,9 +14,6 @@ x = [int(x_val) for x_val in x]
 y = [int(y_val) for y_val in y]
 z = [float(y_val) for y_val in z]
 
-
-#plt.ylim(0,10)
-#plt.xlim(0,10)
 for bytesVal in y:
     hosts = [a for a,b,c in zip(x,y,z) if b == bytesVal]
     print hosts

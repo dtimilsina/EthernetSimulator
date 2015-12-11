@@ -1,4 +1,3 @@
-/* Literally just a tuple */
 public class EventAction {
 
 	public Event event;
