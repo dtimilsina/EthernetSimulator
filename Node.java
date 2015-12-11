@@ -5,7 +5,6 @@ public class Node {
     public static int EXPONENTIAL_BACKOFF = 0;
     public static int IDLE_SENSE = 1;
     public static int IDEAL_BOGGS = 2;
-    public static int IDEAL_IDLE_SENSE = 3;
 
 	public int id;
 	public State state = State.UNINITIALIZED;
@@ -37,9 +36,6 @@ public class Node {
     private int contentionWindow = 0;
     public double nIdleAvg = 0.0;
     private int maxtrans = Constants.MAX_TRANS;
-
-    // Optimal idle sense
-    public int optimalCW = 0;
 
     // This isn't actually used by the node itself for clocking
     public double currentTime = 0.0;
@@ -261,10 +257,6 @@ public class Node {
             return rand.nextInt(contentionWindow);
         } 
 
-        else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-            return rand.nextInt(optimalCW);
-        }
-        
         else {
             assert false : "Whoa ho ho there that ain't no algorithm";
             return 0;

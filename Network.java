@@ -203,10 +203,6 @@ public class Network {
 			if (backoffAlgorithm == Node.IDEAL_BOGGS) {
 				node.numMachines = numNodes;
 			}
-
-			else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-				node.optimalCW = (int) (2.0 / Constants.PE_OPT[numNodes-1]);
-			}
 		}
 
 		return topology;
@@ -235,19 +231,19 @@ public class Network {
 		return transmissionDelay;
     }
 
-		// this is not entirely correct
-		public double getTransmissionDelaySD(){
-			double sd = 0.0;
-			double mean = getTransmissionDelay()/getMachines().size();
-			for (Node node: getMachines()){
-					int successfulPackets = node.stats.successfulPackets;
-					double bitTime = currentTime / successfulPackets;
-					double transmissionDelay = bitTime / 10000;
-					sd += Math.pow(transmissionDelay - mean,2);
-			}
-			sd /= (getMachines().size()-1);
-			return Math.pow(sd,0.5);
+	// this is not entirely correct
+	public double getTransmissionDelaySD(){
+		double sd = 0.0;
+		double mean = getTransmissionDelay()/getMachines().size();
+		for (Node node: getMachines()){
+				int successfulPackets = node.stats.successfulPackets;
+				double bitTime = currentTime / successfulPackets;
+				double transmissionDelay = bitTime / 10000;
+				sd += Math.pow(transmissionDelay - mean,2);
 		}
+		sd /= (getMachines().size()-1);
+		return Math.pow(sd,0.5);
+	}
 
     public double avgPacketSize() {
     	double size = 0.0;
@@ -304,7 +300,7 @@ public class Network {
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_IDLE_SENSE);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
 
                 Network net = new Network(topology);
 
