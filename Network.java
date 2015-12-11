@@ -205,7 +205,7 @@ public class Network {
 			}
 
 			else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-				// set cw
+				node.optimalCW = (int) (2.0 / Constants.PE_OPT[numNodes-1]);
 			}
 		}
 
@@ -306,7 +306,7 @@ public class Network {
             for(int byteCount : bytes) {
             	Constants.MAX_PACKET_SIZE = byteCount * 8;
 
-                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.EXPONENTIAL_BACKOFF);
+                Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDLE_SENSE);
 
                 Network net = new Network(topology);
 
