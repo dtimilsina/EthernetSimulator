@@ -3,4 +3,3 @@ make:
 clean:
 	rm *.class
 	rm *.csv
-	rm *.txt

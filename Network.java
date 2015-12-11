@@ -30,11 +30,10 @@ public class Network {
 		return topology.keySet();
 	}
 
-	public void simulate(int n) {
+	public void simulate(double n) {
 		init();
 
-		int i = 0;
-		while (!eventQueue.empty() && i++ < n) {
+		while (!eventQueue.empty() && n > currentTime) {
 	       	Event event = eventQueue.next();
 
 			if (isPacketCancelled(event)) {
@@ -212,6 +211,15 @@ public class Network {
 		return topology;
 	}
 
+	public int getTotalPackets(){
+		int total_packets = 0;
+
+		for (Node node : getMachines()) {
+	    	total_packets += node.stats.successfulPackets;
+		}
+		return total_packets;
+	}
+
 	public double getPacketsPerSecond() {
 		int total_packets = 0;
 
@@ -277,9 +285,9 @@ public class Network {
     }
 
 	public static void main(String[] args) throws IOException {
-		int[] iterations = new int[99];
-		for (int a = 1; a < 100; a++){
-			iterations[a - 1] = (a * 10000);
+		int[] iterations = new int[199];
+		for (int a = 1; a < 200; a++){
+			iterations[a - 1] = (a * a * 6000 / 4);
 		}
 
 		int nodes = 16;
@@ -302,7 +310,10 @@ public class Network {
             Network net = new Network(topology);
             net.simulate(numIteration);
 
-            IDLEfig13.format("%d,%f\n", numIteration,net.getJains());
+            IDLEfig13.format("%f,%f\n", net.currentTime / 10000000.0,net.getJains());
+            System.out.format("%f\n",net.currentTime / 10000000.0);
+
+
 		}
 
 		for (int numIteration : iterations){
@@ -311,7 +322,7 @@ public class Network {
             Network net = new Network(topology);
             net.simulate(numIteration);
 
-            EXOfig13.format("%d,%f\n", numIteration,net.getJains());
+            EXOfig13.format("%f,%f\n", net.currentTime /10000000.0,net.getJains());
 		}
 
 
@@ -321,7 +332,7 @@ public class Network {
             Network net = new Network(topology);
             net.simulate(numIteration);
 
-            BOGGSfig13.format("%d,%f\n", numIteration,net.getJains());
+            BOGGSfig13.format("%f,%f\n", net.currentTime / 10000000.0,net.getJains());
 		}
 
 		IDLEfig13.close();
