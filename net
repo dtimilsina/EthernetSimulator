@@ -22,4 +22,4 @@ echo "Graphing excessDelay"
 python GraphPlotter.py "excessDelay.csv" 10 > /dev/null
 
 
-open ExcessDelay.png
+open *.png
