@@ -286,19 +286,15 @@ public class Network {
 		int byteCount = 1024;
         Constants.MAX_PACKET_SIZE = byteCount * 8;
         Constants.MAX_TRANS = Math.max(nodes, 5);
-		Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
-
+		Constants.IDLE_TARGET = Constants.IDLE_AVG_OPT_HALF[nodes-1];
 
 		PrintWriter IDLEfig13 = new PrintWriter("IDLEfig13.csv", "UTF-8");
 		PrintWriter EXOfig13 = new PrintWriter("EXOfig13.csv", "UTF-8");
 		PrintWriter BOGGSfig13 = new PrintWriter("BOGGSfig13.csv", "UTF-8");
-		PrintWriter IDEALfig13 = new PrintWriter("IDEALfig13.csv", "UTF-8");
-
 
 		IDLEfig13.println("WindowSize,Fairness");
 		EXOfig13.println("WindowSize,Fairness");
 		BOGGSfig13.println("WindowSize,Fairness");
-		IDEALfig13.println("WindowSize,Fairness");
 
 		for (int numIteration : iterations){
 			System.out.format("Running %d iterations\n", numIteration);
@@ -327,17 +323,9 @@ public class Network {
 
             BOGGSfig13.format("%d,%f\n", numIteration,net.getJains());
 		}
-		for (int numIteration : iterations){
-			System.out.format("Running %d iterations\n", numIteration);
-			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_IDLE_SENSE);
-            Network net = new Network(topology);
-            net.simulate(numIteration);
 
-            IDEALfig13.format("%d,%f\n", numIteration,net.getJains());
-		}
 		IDLEfig13.close();
 		EXOfig13.close();
 		BOGGSfig13.close();
-		IDEALfig13.close();
 	}
 }
