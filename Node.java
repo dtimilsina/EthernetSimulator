@@ -252,14 +252,14 @@ public class Node {
             }
         } 
 
-        else if (backoffAlgorithm == Node.IDLE_SENSE) {
-            if (contentionWindow == 0) return 0;
-            return rand.nextInt(contentionWindow); // slots;
-        } 
-
         else if (backoffAlgorithm == Node.IDEAL_BOGGS) {
             return rand.nextInt(numMachines);
         }
+
+        else if (backoffAlgorithm == Node.IDLE_SENSE) {
+            if (contentionWindow == 0) return 0;
+            return rand.nextInt(contentionWindow);
+        } 
 
         else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
             return rand.nextInt(optimalCW);

@@ -16,6 +16,7 @@ vals = [ (1, 1.0), (2, .623),(3 , .437),(4 , .335),(5 , .271),(6 , .227),
 		(19, .0737),(20, .07021),(21, .06691),(22, .0639),(23, .06114),(24, .05862)]
 
 print "PE OPT { " + ", ".join([str(x[1]) for x in vals]) + " }"
+print "CW OPT { " + ", ".join([str(x[1]/2) for x in vals]) + " }"
 
 print "Tc= {0}".format(Tc)
 print "{ " + ", ".join([str(opt_idle(val)) for val in vals]) + "}"
@@ -27,6 +28,7 @@ vals = [ (1, 1.0000),(2, 0.5390),(3, 0.3647),(4, 0.2753),(5, 0.2211),(6, 0.1846)
 		 (19, 0.05874),(20, 0.05582),(21, 0.05316),(22, 0.05076),(23, 0.04856 ),(24, 0.04654)]
 
 print "PE HALF OPT { " + ", ".join([str(x[1]) for x in vals]) + " }"
+print "CW OPT { " + ", ".join([str(x[1]/2) for x in vals]) + " }"
 
 print "Tc= {0}".format(Tc)
 print "{ " + ", ".join([str(opt_idle(val)) for val in vals]) + "}"

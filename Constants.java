@@ -54,8 +54,8 @@ public class Constants {
 	public static int MAX_TRANS = 10;
 	public static double IDLE_TARGET = 0;
 
-	public static 		int EPS = 3;
-	public static 		double ALPHA = 0.95;
-	public static 		double BETA = .8;
-	public static 		int GAMMA = 1;
+	public static 		int EPS = 12;
+	public static 		double ALPHA = 0.99;
+	public static 		double BETA = .5;
+	public static 		int GAMMA = 3;
 }
