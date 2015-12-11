@@ -6,7 +6,6 @@ javac *.java
 echo "Running network"
 java -ea Network
 
-#python GraphPlotter.py "IDLEfig13.csv" "EXOfig13.csv" "BOGGSfig13.csv" "IDEALfig13.csv" > /dev/null
-python GraphPlotter.py "IDLEfig13.csv" "EXOfig13.csv" "BOGGSfig13.csv" > /dev/null
+python GraphPlotter.py "IDLEfig13.csv" "EXOfig13.csv" "BOGGSfig13.csv" "IDEALfig13.csv" > /dev/null
 
 open *.png

@@ -12,6 +12,8 @@ public class Network {
 
 	private double currentTime = 0.0;
 
+	private double waitTime = 0.0;
+
 	private Map<Node, Set<Integer>> cancelledPackets;
 
 
@@ -149,6 +151,7 @@ public class Network {
 	}
 
 	private void waitEvent(Action action) {
+		waitTime += action.duration;
 		double time = currentTime + action.duration;
 		Event event = new Event(EventType.WAIT_END, action.source, action.source, time, action.packetId);
 		add(event);
@@ -202,7 +205,7 @@ public class Network {
 			}
 
 			else if (backoffAlgorithm == Node.IDEAL_IDLE_SENSE) {
-				// set cw
+				node.optimalCW = (int) (2.0 / Constants.PE_OPT[numNodes-1]);
 			}
 		}
 
@@ -232,6 +235,35 @@ public class Network {
 		return transmissionDelay;
     }
 
+		// this is not entirely correct
+		public double getTransmissionDelaySD(){
+			double sd = 0.0;
+			double mean = getTransmissionDelay()/getMachines().size();
+			for (Node node: getMachines()){
+					int successfulPackets = node.stats.successfulPackets;
+					double bitTime = currentTime / successfulPackets;
+					double transmissionDelay = bitTime / 10000;
+					sd += Math.pow(transmissionDelay - mean,2);
+			}
+			sd /= (getMachines().size()-1);
+			return Math.pow(sd,0.5);
+		}
+
+    public double avgPacketSize() {
+    	double size = 0.0;
+
+    	for (Node node : getMachines()) {
+    		size += node.stats.bitsSent;
+    	}
+
+    	return size / getMachines().size();
+    }
+
+    public double excessTransmissionDelay() {
+    	double ideal = (Constants.MAX_PACKET_SIZE + Constants.PREAMBLE_TIME + Constants.INTERPACKET_GAP) * getMachines().size() ;
+    	return (getTransmissionDelay() * 10000 - ideal);
+	  }
+
     public double getJains() {
     	double sum_xi = 0.0;
     	double sum_xi_sq = 0.0;
@@ -242,22 +274,6 @@ public class Network {
     	}
 
     	return sum_xi * sum_xi / (getMachines().size() * sum_xi_sq);
-
-  //   	int packets = 0;
-  //   	double bitTimePerPacket = 0.0;
-
-  //   	double top = 0;
-  //   	double bot = 0;
-
-  //   	for (Node node : getMachines()) {
-	 //    	packets = node.stats.successfulPackets;
-	 //    	//bitTimePerPacket = currentTime  / (1.0 * packets);
-	 //    	bitTimePerPacket = (1.0 * packets)/currentTime;	
-	 //    	top += bitTimePerPacket;
-	 //    	bot += (bitTimePerPacket * bitTimePerPacket);
-		// }
-		// top = top * top;
-		// return top / (bot * getMachines().size());
     }
 
 	public static void main(String[] args) throws IOException {
@@ -272,16 +288,17 @@ public class Network {
         Constants.MAX_TRANS = Math.max(nodes, 5);
 		Constants.nIdleTarget = Constants.nIdleAvgOptHalf[nodes-1];
 
+
 		PrintWriter IDLEfig13 = new PrintWriter("IDLEfig13.csv", "UTF-8");
 		PrintWriter EXOfig13 = new PrintWriter("EXOfig13.csv", "UTF-8");
 		PrintWriter BOGGSfig13 = new PrintWriter("BOGGSfig13.csv", "UTF-8");
-		//PrintWriter IDEALfig13 = new PrintWriter("IDEALfig13.csv", "UTF-8");
+		PrintWriter IDEALfig13 = new PrintWriter("IDEALfig13.csv", "UTF-8");
 
 
 		IDLEfig13.println("WindowSize,Fairness");
 		EXOfig13.println("WindowSize,Fairness");
 		BOGGSfig13.println("WindowSize,Fairness");
-		//IDEALfig13.println("WindowSize,Fairness");
+		IDEALfig13.println("WindowSize,Fairness");
 
 		for (int numIteration : iterations){
 			System.out.format("Running %d iterations\n", numIteration);
@@ -301,6 +318,7 @@ public class Network {
             EXOfig13.format("%d,%f\n", numIteration,net.getJains());
 		}
 
+
 		for (int numIteration : iterations){
 			System.out.format("Running %d iterations\n", numIteration);
 			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_BOGGS);
@@ -309,7 +327,6 @@ public class Network {
 
             BOGGSfig13.format("%d,%f\n", numIteration,net.getJains());
 		}
-		/*
 		for (int numIteration : iterations){
 			System.out.format("Running %d iterations\n", numIteration);
 			Map<Node, Integer> topology = Network.generateTopology(nodes, Node.IDEAL_IDLE_SENSE);
@@ -318,10 +335,9 @@ public class Network {
 
             IDEALfig13.format("%d,%f\n", numIteration,net.getJains());
 		}
-		*/
 		IDLEfig13.close();
 		EXOfig13.close();
 		BOGGSfig13.close();
-		//IDEALfig13.close();
+		IDEALfig13.close();
 	}
 }
